@@ -1,0 +1,106 @@
+# Copyright (c) 2026 Roman Zhuzhgov
+# Licensed under the Apache License, Version 2.0
+#
+# Per-PR parity (trust layer 2): drive the in-repo `swiftfilt-parity`
+# instrument against a live `swift-demangle` — the committed-fixture
+# corpus legs, the selfcheck proof that the gate gates, the live
+# oracle sweep over the fixture set (all seven legs), the roundtrip
+# adjudication, and a totality slice. macOS resolves the oracle
+# through xcrun; Linux Swift toolchains ship swift-demangle in the
+# toolchain's usr/bin (the swift:6.1 container has it on PATH), and
+# the resolve step verifies the located tool actually speaks every
+# flag the legs assume before any sweep runs — a renamed oracle flag
+# fails loudly at the probe, never mid-run or silently.
+# Known deviations (KNOWN-DEVIATIONS.md) classify; anything
+# unclassified exits non-zero and fails the job.
+
+name: Parity
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Container jobs (swift:6.1) default to sh, which rejects `set -o pipefail`.
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    name: Parity (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            label: macOS, xcrun oracle
+            container: ""
+          - os: ubuntu-24.04
+            label: Linux, toolchain oracle
+            container: swift:6.1
+    runs-on: ${{ matrix.os }}
+    # An empty container string means "run on the host" (the documented
+    # GitHub Actions behavior for expression-valued `container:`).
+    container: ${{ matrix.container }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Resolve and verify the oracle
+        # Location fallback chain: PATH → next to swiftc → xcrun. Then
+        # verify every flag the legs assume (-compact, -simplified,
+        # -no-sugar, -classify, -tree-only, -remangle-new) against a
+        # known symbol, so a toolchain that renames or drops a mode
+        # fails here with the flag named.
+        run: |
+          if command -v swift-demangle > /dev/null 2>&1; then
+            ORACLE="$(command -v swift-demangle)"
+          elif [ -x "$(dirname "$(command -v swiftc)")/swift-demangle" ]; then
+            ORACLE="$(dirname "$(command -v swiftc)")/swift-demangle"
+          elif command -v xcrun > /dev/null 2>&1; then
+            ORACLE="$(xcrun -f swift-demangle)"
+          else
+            echo "::error::swift-demangle not found (PATH, toolchain bin, xcrun all empty)"
+            exit 1
+          fi
+          echo "resolved oracle: $ORACLE"
+          "$(dirname "$ORACLE")/swift" --version || true
+          probe() {
+            flag="$1"; expect="$2"
+            out="$(echo '$s4main3fooyyF' | "$ORACLE" $flag 2>&1)" || {
+              echo "::error::oracle flag probe failed: swift-demangle $flag exited non-zero"
+              exit 1
+            }
+            case "$out" in
+              *"$expect"*) echo "probe ok: $flag" ;;
+              *)
+                echo "::error::oracle flag probe failed: swift-demangle $flag printed '$out' (expected to contain '$expect')"
+                exit 1
+                ;;
+            esac
+          }
+          probe "-compact"           "main.foo() -> ()"
+          probe "-simplified"        "foo()"
+          probe "-no-sugar"          "main.foo() -> ()"
+          probe "-classify"          "main.foo() -> ()"
+          probe "-tree-only"         "kind="
+          probe "-remangle-new"      's4main3fooyyF'
+          echo "SWIFTFILT_ORACLE=$ORACLE" >> "$GITHUB_ENV"
+      - name: Build parity instrument (release)
+        run: swift build -c release --product swiftfilt-parity
+      - name: Corpus — committed fixtures, every leg
+        run: .build/release/swiftfilt-parity corpus
+      - name: Selfcheck — proof that the gate gates
+        run: .build/release/swiftfilt-parity selfcheck
+      - name: Live — fixture set vs the oracle, all seven legs
+        run: .build/release/swiftfilt-parity live --oracle "$SWIFTFILT_ORACLE"
+      - name: Roundtrip — demangle → remangle → adjudicate
+        run: .build/release/swiftfilt-parity roundtrip --oracle "$SWIFTFILT_ORACLE"
+      - name: Total — totality slice (seeded, deterministic)
+        run: .build/release/swiftfilt-parity total --items 50000

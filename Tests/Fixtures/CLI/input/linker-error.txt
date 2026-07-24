@@ -1,0 +1,6 @@
+Undefined symbols for architecture arm64:
+  "_$s10AppIntents0aB8XPCErrorO9errorCodeSivg", referenced from:
+      _$s4main3fooyyFSi_Tg5 in main.o
+      _$s3foo3barC3bas3zimyAaEC_tFTo in bar.o
+ld: symbol(s) not found for architecture arm64
+clang: error: linker command failed with exit code 1 (use -v to see invocation)

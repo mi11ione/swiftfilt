@@ -1,0 +1,21 @@
+{"schemaVersion":1,"kind":"census","format":"linkmap","weight":"bytes","detection":"first line is an ld '# Path:' header","path":"build/census-fixture","arch":"arm64","objectFiles":8,"lines":221,"structureLines":39,"unparseableLines":0,"rows":150,"rowBytes":5450,"swift":82,"swiftBytes":4272,"nonSwift":40,"nonSwiftBytes":750,"malformed":0,"malformedBytes":0,"contentAtoms":28,"contentAtomsBytes":428,"embeddedMangling":3,"embeddedManglingBytes":216,"linkerPlumbing":21,"linkerPlumbingBytes":196,"implausibleSizes":0,"implausibleSizesBytes":0,"deadStripped":32,"deadStrippedBytes":2384,"unknownOrdinalRows":0,"machinery":57,"machineryBytes":1136,"human":25,"humanBytes":3136,"specialized":6,"specializedBytes":916,"unattributedSpecializations":0,"unattributedSpecializationsBytes":0}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"function","count":23,"bytes":3040}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"metadata.typeMetadata","count":23,"bytes":416}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"metadata.conformance","count":11,"bytes":200}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"protocolWitness","count":5,"bytes":196}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"metadata.typeDescriptor","count":9,"bytes":148}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"metadata.reflection","count":4,"bytes":112}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"deinitializer","count":1,"bytes":60}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"metadata.protocolDescriptor","count":3,"bytes":44}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"initializer","count":1,"bytes":36}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"thunk.dispatch","count":2,"bytes":20}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"CensusFixture","count":48,"bytes":3616}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"Swift","count":31,"bytes":624}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"(no module)","count":3,"bytes":32}
+{"schemaVersion":1,"kind":"censusRow","table":"specializations","name":"CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int","count":3,"bytes":484}
+{"schemaVersion":1,"kind":"censusRow","table":"specializations","name":"Swift._ContiguousArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ContiguousArrayBuffer<A>","count":1,"bytes":264}
+{"schemaVersion":1,"kind":"censusRow","table":"specializations","name":"CensusFixture.Ledger.add<A where A: CensusFixture.Shape>(_: A, note: Swift.String) -> ()","count":1,"bytes":140}
+{"schemaVersion":1,"kind":"censusRow","table":"specializations","name":"Swift.ContiguousArray._createNewBuffer(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> ()","count":1,"bytes":28}
+{"schemaVersion":1,"kind":"censusRow","table":"duplicates","name":"CensusFixture.main() -> ()","count":4,"bytes":1948}
+{"schemaVersion":1,"kind":"censusRow","table":"duplicates","name":"CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int","count":3,"bytes":484}
+{"schemaVersion":1,"kind":"censusRow","table":"duplicates","name":"protocol witness for CensusFixture.Shape.describe() -> Swift.String in conformance CensusFixture.Circle : CensusFixture.Shape in CensusFixture","count":2,"bytes":128}

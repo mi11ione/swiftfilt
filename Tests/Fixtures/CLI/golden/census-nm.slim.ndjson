@@ -1,0 +1,22 @@
+{"kind":"census","format":"nm","weight":"count","lines":111,"structureLines":0,"unparseableLines":0,"rows":111,"swift":72,"nonSwift":29,"malformed":0,"contentAtoms":10,"embeddedMangling":5,"linkerPlumbing":0,"implausibleSizes":0,"undefinedRows":37,"machinery":53,"human":19,"specialized":6,"unattributedSpecializations":0}
+{"kind":"censusRow","table":"kinds","name":"metadata.typeMetadata","count":24}
+{"kind":"censusRow","table":"kinds","name":"function","count":17}
+{"kind":"censusRow","table":"kinds","name":"metadata.conformance","count":9}
+{"kind":"censusRow","table":"kinds","name":"metadata.typeDescriptor","count":6}
+{"kind":"censusRow","table":"kinds","name":"protocolWitness","count":5}
+{"kind":"censusRow","table":"kinds","name":"metadata.reflection","count":4}
+{"kind":"censusRow","table":"kinds","name":"metadata.protocolDescriptor","count":2}
+{"kind":"censusRow","table":"kinds","name":"metadata.valueWitness","count":2}
+{"kind":"censusRow","table":"kinds","name":"deinitializer","count":1}
+{"kind":"censusRow","table":"kinds","name":"initializer","count":1}
+{"kind":"censusRow","table":"kinds","name":"thunk.dispatch","count":1}
+{"kind":"censusRow","table":"modules","name":"CensusFixture","count":42}
+{"kind":"censusRow","table":"modules","name":"Swift","count":25}
+{"kind":"censusRow","table":"modules","name":"(no module)","count":5}
+{"kind":"censusRow","table":"specializations","name":"CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int","count":3}
+{"kind":"censusRow","table":"specializations","name":"CensusFixture.Ledger.add<A where A: CensusFixture.Shape>(_: A, note: Swift.String) -> ()","count":1}
+{"kind":"censusRow","table":"specializations","name":"Swift.ContiguousArray._createNewBuffer(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> ()","count":1}
+{"kind":"censusRow","table":"specializations","name":"Swift._ContiguousArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ContiguousArrayBuffer<A>","count":1}
+{"kind":"censusRow","table":"duplicates","name":"CensusFixture.main() -> ()","count":4}
+{"kind":"censusRow","table":"duplicates","name":"CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int","count":3}
+{"kind":"censusRow","table":"duplicates","name":"protocol witness for CensusFixture.Shape.describe() -> Swift.String in conformance CensusFixture.Circle : CensusFixture.Shape in CensusFixture","count":2}

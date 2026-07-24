@@ -1,0 +1,18 @@
+Incident Identifier: 8E4F1D2A-3C6B-4F8E-9A1D-2B3C4D5E6F70
+Hardware Model:      MacBookPro18,3
+Process:             MyApp [4242]
+Code Type:           ARM-64 (Native)
+Exception Type:      EXC_BAD_ACCESS (SIGSEGV)
+
+Thread 0 Crashed:
+0   MyApp                         0x0000000104abc123 AppIntentsXPCError.errorCode.getter + 12
+1   MyApp                         0x0000000104abd456 closure #1 in static JSON.decode<A>(_:from:) + 88
+2   MyApp                         0x0000000104abe789 specialized foo() + 4
+3   MyApp                         0x0000000104abf012 @objc bar.bas(zim:) + 40
+4   libswiftCore.dylib            0x00000001904aa000 protocol witness for P.foo() in conformance C + 20
+5   MyApp                         0x0000000104ac0345 testit(_:) + 16
+6   ???                           0x0000000000000000 0x0 + 0
+
+Binary Images:
+0x104ab8000 - 0x104beffff MyApp arm64e <8e4f1d2a3c6b4f8e> /Applications/MyApp.app/Contents/MacOS/MyApp
+0x1904a0000 - 0x190a7ffff libswiftCore.dylib arm64e <aabbccdd11223344> /usr/lib/swift/libswiftCore.dylib

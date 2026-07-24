@@ -1,0 +1,8 @@
+0000000104abc120 T _$s10AppIntents0aB8XPCErrorO9errorCodeSivg
+0000000104abd450 t _$s7Testing4JSONO6decode_4fromxxm_SWtKSeRzlFZxyKXEfU_
+0000000104abe780 T _$s4main3fooyyFSi_Tg5
+0000000104abf010 t _$s3foo3barC3bas3zimyAaEC_tFTo
+                 U _swift_retain
+                 U _objc_msgSend
+0000000104ac0340 T _main
+0000000104ac0400 s ___swift_reflection_version

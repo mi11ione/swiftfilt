@@ -1,0 +1,12 @@
+{"schemaVersion":1,"kind":"explain","mangled":"$s4main6ServerC5start4portySi_tF","status":"demangled","era":"stableABI","demangled":"main.Server.start(port: Swift.Int) -> ()","symbolKind":"function","module":"main","path":["Server","start"],"identityKey":"main.Server.start(port: Swift.Int) -> ()"}
+{"schemaVersion":1,"kind":"explain","mangled":"$s4main3fooyyFSi_Tg5","status":"demangled","era":"stableABI","demangled":"generic specialization <Swift.Int> of main.foo() -> ()","symbolKind":"function","module":"main","path":["foo"],"identityKey":"main.foo() -> ()"}
+{"schemaVersion":1,"kind":"explain","mangled":"_TtC4main3Foo","status":"demangled","era":"legacy","demangled":"main.Foo","symbolKind":"type","module":"main","path":["Foo"],"identityKey":"main.Foo"}
+{"schemaVersion":1,"kind":"explain","mangled":"$s4main9foo","status":"malformed","era":"stableABI","stoppedAtByteOffset":8,"reason":"truncatedIdentifier","declaredLength":9,"availableBytes":3}
+{"schemaVersion":1,"kind":"explain","mangled":"$s6modern10fetchThi","status":"malformed","era":"stableABI","stoppedAtByteOffset":11,"reason":"truncatedIdentifier","declaredLength":10,"availableBytes":8}
+{"schemaVersion":1,"kind":"explain","mangled":"$sXXXXXXXX","status":"malformed","era":"stableABI","stoppedAtByteOffset":4,"reason":"unexpectedByte","byte":88}
+{"schemaVersion":1,"kind":"explain","mangled":"$s","status":"malformed","era":"stableABI","stoppedAtByteOffset":2,"reason":"emptyBody"}
+{"schemaVersion":1,"kind":"explain","mangled":"$s4main3fooyyF trailing junk","status":"malformed","era":"stableABI","stoppedAtByteOffset":14,"reason":"unexpectedByte","byte":32,"embeddedSymbols":["$s4main3fooyyF"]}
+{"schemaVersion":1,"kind":"explain","mangled":"$s4main6ServerC5start4portySi_tX","status":"malformed","era":"stableABI","stoppedAtByteOffset":32,"reason":"incompleteInput"}
+{"schemaVersion":1,"kind":"explain","mangled":"_Z3fooiii","status":"notSwiftMangled","foreign":"cxxItanium"}
+{"schemaVersion":1,"kind":"explain","mangled":"_RNvNtC7mycrate3foo3bar","status":"notSwiftMangled","foreign":"rust"}
+{"schemaVersion":1,"kind":"explain","mangled":"hello_world","status":"notSwiftMangled"}

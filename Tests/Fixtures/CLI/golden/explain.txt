@@ -1,0 +1,93 @@
+$s4main6ServerC5start4portySi_tF
+  status       demangled
+  era          stable-ABI ($s)
+  kind         function
+  module       main
+  path         Server.start
+  full         main.Server.start(port: Swift.Int) -> ()
+  simplified   Server.start(port:)
+  qualified    main.Server.start(port: Swift.Int) -> ()
+  unqualified  start(port: Int) -> ()
+  identity     main.Server.start(port: Swift.Int) -> ()
+
+$s4main3fooyyFSi_Tg5
+  status       demangled
+  era          stable-ABI ($s)
+  kind         function
+  module       main
+  path         foo
+  flags        specialized
+  origin       main.foo() -> ()
+  full         generic specialization <Swift.Int> of main.foo() -> ()
+  simplified   specialized foo()
+  qualified    generic specialization <Swift.Int> of main.foo() -> ()
+  unqualified  generic specialization <Int> of foo() -> ()
+  identity     main.foo() -> ()
+
+_TtC4main3Foo
+  status       demangled
+  era          legacy Swift ≤3 (_T)
+  kind         type
+  module       main
+  path         Foo
+  full         main.Foo
+  simplified   Foo
+  qualified    main.Foo
+  unqualified  Foo
+  identity     main.Foo
+
+$s4main9foo
+  status       malformed — carries a Swift prefix but does not parse
+  era          stable-ABI ($s)
+  parse        stopped at byte 8 of 11
+  reason       an identifier declares 9 bytes but only 3 remain
+               likely a name cut short — a frame truncated in a fixed-width log column
+
+$s6modern10fetchThi
+  status       malformed — carries a Swift prefix but does not parse
+  era          stable-ABI ($s)
+  parse        stopped at byte 11 of 19
+  reason       an identifier declares 10 bytes but only 8 remain
+               likely a name cut short — a frame truncated in a fixed-width log column
+
+$sXXXXXXXX
+  status       malformed — carries a Swift prefix but does not parse
+  era          stable-ABI ($s)
+  parse        stopped at byte 4 of 10
+  reason       an unexpected byte 'X' (0x58) where the grammar expects a different one
+
+$s
+  status       malformed — carries a Swift prefix but does not parse
+  era          stable-ABI ($s)
+  parse        stopped at byte 2 of 2
+  reason       only a mangling prefix, with no symbol body
+
+$s4main3fooyyF trailing junk
+  status       malformed — carries a Swift prefix but does not parse
+  era          stable-ABI ($s)
+  parse        stopped at byte 14 of 28
+  reason       an unexpected byte ' ' (0x20) where the grammar expects a different one
+  contains     1 complete Swift name — the whole string is not one symbol:
+               $s4main3fooyyF  →  main.foo() -> ()
+  hint         extract embedded names with the filter: swiftfilt < file
+
+$s4main6ServerC5start4portySi_tX
+  status       malformed — carries a Swift prefix but does not parse
+  era          stable-ABI ($s)
+  parse        stopped at byte 32 of 32
+  reason       the input ends mid-symbol — a production is left unfinished (a trailing operator with no operand)
+
+_Z3fooiii
+  status       not a Swift mangled name — no recognized mangling prefix
+  looks like   C++ (Itanium _Z) — try c++filt
+  hint         _Z3fooiii | c++filt
+
+_RNvNtC7mycrate3foo3bar
+  status       not a Swift mangled name — no recognized mangling prefix
+  looks like   Rust (_R) — try rustfilt
+  hint         _RNvNtC7mycrate3foo3bar | rustfilt
+
+hello_world
+  status       not a Swift mangled name — no recognized mangling prefix
+  hint         hand it to another demangler, or show it raw
+

@@ -1,0 +1,3 @@
+[1m/Users/dev/MyApp/Sources/main.swift:14:9: [0m[0;1;31merror: [0m[1mcannot find symbol generic specialization <Swift.Int> of main.foo() -> () in scope[0m
+Compiling Swift Module 'MyApp' (3 sources)
+[33mwarning:[0m witness protocol witness for call_protocol.P.foo() -> Swift.Int in conformance call_protocol.C : call_protocol.P in call_protocol shadows earlier declaration

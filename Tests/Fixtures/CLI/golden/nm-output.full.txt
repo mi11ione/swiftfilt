@@ -1,0 +1,8 @@
+0000000104abc120 T AppIntents.AppIntentsXPCError.errorCode.getter : Swift.Int
+0000000104abd450 t closure #1 () throws -> A in static Testing.JSON.decode<A where A: Swift.Decodable>(_: A.Type, from: Swift.UnsafeRawBufferPointer) throws -> A
+0000000104abe780 T generic specialization <Swift.Int> of main.foo() -> ()
+0000000104abf010 t @objc foo.bar.bas(zim: foo.zim) -> ()
+                 U _swift_retain
+                 U _objc_msgSend
+0000000104ac0340 T _main
+0000000104ac0400 s ___swift_reflection_version

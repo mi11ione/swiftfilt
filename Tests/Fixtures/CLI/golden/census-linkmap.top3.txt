@@ -1,0 +1,55 @@
+census — Xcode LinkMap, size-weighted
+  build/census-fixture (arm64), 8 object files
+  detected: first line is an ld '# Path:' header
+
+input
+  lines                     221
+  structure lines            39
+  unparseable lines           0
+  rows                      150  5,450 bytes
+    swift                    82  4,272 bytes
+    non-swift                40    750 bytes
+    malformed swift-prefix    0      0 bytes
+    content atoms (skipped)  28    428 bytes
+  dead-stripped rows         32  2,384 bytes   not in the binary; excluded from every table
+  non-swift rows embedding a swift mangling: 3 (216 bytes)
+  linker plumbing (.stub/.got import glue) among swift rows: 21 (196 bytes)
+
+compiler-generated machinery
+  machinery is 26.6% of swift bytes (57 of 82 symbols)
+  machinery                 57  1,136 bytes
+  human-written             25  3,136 bytes
+  machinery = thunks + witnesses + bridging entry points + outlined code
+              + metadata records + variable/default-argument initializers
+
+swift by kind
+  count  bytes  kind
+     23  3,040  function
+     23    416  metadata.typeMetadata
+     11    200  metadata.conformance
+      5    196  protocolWitness
+      9    148  metadata.typeDescriptor
+      4    112  metadata.reflection
+      1     60  deinitializer
+      3     44  metadata.protocolDescriptor
+      1     36  initializer
+      2     20  thunk.dispatch
+
+swift by module
+  count  bytes  module
+     48  3,616  CensusFixture
+     31    624  Swift
+      3     32  (no module)
+
+specialized generic origins (top 3 of 4)
+  copies  bytes  generic origin
+       3    484  CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int
+       1    264  Swift._ContiguousArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ContiguousArrayBuffer<A>
+       1    140  CensusFixture.Ledger.add<A where A: CensusFixture.Shape>(_: A, note: Swift.String) -> ()
+       1     28  (+ 1 more origins)
+
+duplicated logical functions
+  copies  bytes  identity
+       4  1,948  CensusFixture.main() -> ()
+       3    484  CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int
+       2    128  protocol witness for CensusFixture.Shape.describe() -> Swift.String in conformance CensusFixture.Circle : CensusFixture.Shape in CensusFixture

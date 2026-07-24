@@ -1,0 +1,54 @@
+census — nm output, count-weighted
+  detected: all 111 sampled lines are nm rows
+
+input
+  lines                     111
+  structure lines             0
+  unparseable lines           0
+  rows                      111
+    swift                    72
+    non-swift                29
+    malformed swift-prefix    0
+    content atoms (skipped)  10
+  non-swift rows embedding a swift mangling: 5
+  undefined (U) rows counted above: 37 — references, not definitions
+
+compiler-generated machinery
+  machinery is 73.6% of swift symbols (53 of 72)
+  machinery                 53
+  human-written             19
+  machinery = thunks + witnesses + bridging entry points + outlined code
+              + metadata records + variable/default-argument initializers
+
+swift by kind
+  count  kind
+     24  metadata.typeMetadata
+     17  function
+      9  metadata.conformance
+      6  metadata.typeDescriptor
+      5  protocolWitness
+      4  metadata.reflection
+      2  metadata.protocolDescriptor
+      2  metadata.valueWitness
+      1  deinitializer
+      1  initializer
+      1  thunk.dispatch
+
+swift by module
+  count  module
+     42  CensusFixture
+     25  Swift
+      5  (no module)
+
+specialized generic origins
+  copies  generic origin
+       3  CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int
+       1  CensusFixture.Ledger.add<A where A: CensusFixture.Shape>(_: A, note: Swift.String) -> ()
+       1  Swift.ContiguousArray._createNewBuffer(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> ()
+       1  Swift._ContiguousArrayBuffer._consumeAndCreateNew(bufferIsUnique: Swift.Bool, minimumCapacity: Swift.Int, growForAppend: Swift.Bool) -> Swift._ContiguousArrayBuffer<A>
+
+duplicated logical functions
+  copies  identity
+       4  CensusFixture.main() -> ()
+       3  CensusFixture.tally<A where A: Swift.Collection, A.Element: Swift.Equatable>(A) -> Swift.Int
+       2  protocol witness for CensusFixture.Shape.describe() -> Swift.String in conformance CensusFixture.Circle : CensusFixture.Shape in CensusFixture

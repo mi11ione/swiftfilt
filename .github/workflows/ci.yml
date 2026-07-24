@@ -1,0 +1,108 @@
+# Copyright (c) 2026 Roman Zhuzhgov
+# Licensed under the Apache License, Version 2.0
+#
+# Per-commit gate (trust layer 1): build (debug + release), the full
+# test suite on macOS and Linux, the zero-warnings grep, the
+# zero-imports grep gate, and the 100%-coverage gate (macOS;
+# line/function/region columns, per file, Sources/SwiftFilt +
+# Sources/SwiftFiltCLICore, with the pinned engine residue ledger).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Container jobs (swift:6.1) default to sh, which rejects `set -o pipefail`.
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: macOS build + test + gates
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Toolchain
+        run: swift --version
+      - name: Build (debug)
+        run: |
+          set -o pipefail
+          swift build 2>&1 | tee build-debug.log
+      - name: Build (release)
+        run: |
+          set -o pipefail
+          swift build -c release 2>&1 | tee build-release.log
+      - name: Warnings are errors for the tree
+        run: |
+          if grep -E "warning:" build-debug.log build-release.log; then
+            echo "::error::compiler warnings present"
+            exit 1
+          fi
+      - name: Test (with coverage)
+        # Serial: coverage instrumentation stretches the tests that spawn real
+        # worker threads and block on them; run in parallel on a few-core runner
+        # that starves the test executor. Serial is deterministic and the
+        # coverage gate does not need parallelism.
+        run: |
+          set -o pipefail
+          swift test --enable-code-coverage --no-parallel 2>&1 | tee test.log
+      - name: Warnings are errors for the test build
+        run: |
+          if grep -E "warning:" test.log; then
+            echo "::error::compiler warnings present in the test build"
+            exit 1
+          fi
+      - name: No-imports gate
+        run: Scripts/check-no-imports.sh
+      - name: Coverage gate (per-file 100% + engine residue ledger)
+        run: Scripts/coverage-gate.sh --skip-tests
+
+  linux:
+    name: Linux build + test
+    runs-on: ubuntu-24.04
+    container: swift:6.1
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Toolchain
+        run: swift --version
+      - name: Install jq
+        # The minimal Swift container lacks jq, which a census CI-gate test runs.
+        run: apt-get update && apt-get install -y jq
+      - name: Build (debug)
+        run: |
+          set -o pipefail
+          swift build 2>&1 | tee build-debug.log
+      - name: Build (release)
+        run: |
+          set -o pipefail
+          swift build -c release 2>&1 | tee build-release.log
+      - name: Warnings are errors for the tree
+        run: |
+          if grep -E "warning:" build-debug.log build-release.log; then
+            echo "::error::compiler warnings present"
+            exit 1
+          fi
+      - name: Test
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee test.log
+      - name: Warnings are errors for the test build
+        run: |
+          if grep -E "warning:" test.log; then
+            echo "::error::compiler warnings present in the test build"
+            exit 1
+          fi
+      - name: No-imports gate
+        run: Scripts/check-no-imports.sh

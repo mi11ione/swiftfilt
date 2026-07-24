@@ -1,0 +1,13 @@
+{
+  "schema": "swiftfilt-bench-baseline/1",
+  "hostClass": "Apple M4 (4P+6E), 24 GiB, macOS 27, Swift 6.4 — the development machine, NOT yet a CI runner",
+  "note": "The 0.4.0 baseline, recorded from a foreground `swiftfilt-bench smoke --json` on the development machine (the nightly bench-smoke job is CI-UNTESTED until the repo's first scheduled run). Thresholds are HOST-CLASS-RELATIVE: on the first CI run, if the GitHub-hosted runner's host class differs enough to breach, re-record this file from that run's smoke output and keep the tolerance. It gates on ONE metric, stream-throughput, which is stable (about 2 percent intra-run spread in the smoke config). filter-throughput is deliberately omitted: its smoke-config spread reaches about 17 percent (short runs over a 16 MiB buffer), so gating on it would flap; the smoke still measures and prints it, and the comparator reports any metric absent from this file without gating. Tolerance is wide (35 percent) on purpose: this is a catastrophe canary for a real (roughly 1.5x or worse) engine regression, not a precise perf gate. Precise performance work runs the full swiftfilt-bench battery on a known host (methodology in Benchmarks/README.md). Comparison is one-sided: throughput fails only when median falls below baseline*(1-tolerance). A baseline metric missing from the run fails rather than skips.",
+  "toleranceFraction": 0.35,
+  "metrics": {
+    "stream-throughput": {
+      "unit": "symbols/s",
+      "largerIsBetter": true,
+      "median": 735980
+    }
+  }
+}

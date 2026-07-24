@@ -1,0 +1,36 @@
+census — bare text, count-weighted
+  detected: no linkmap header and line 1 of the sample is not an nm row; treated as bare text
+
+input
+  lines                     18
+  manglings found            6
+
+compiler-generated machinery
+  machinery is 33.3% of swift symbols (2 of 6)
+  machinery                 2
+  human-written             4
+  machinery = thunks + witnesses + bridging entry points + outlined code
+              + metadata records + variable/default-argument initializers
+
+swift by kind
+  count  kind
+      3  function
+      1  accessor.getter
+      1  closure
+      1  protocolWitness
+
+swift by module
+  count  module
+      1  AppIntents
+      1  Testing
+      1  abc
+      1  call_protocol
+      1  foo
+      1  main
+
+specialized generic origins
+  copies  generic origin
+       1  main.foo() -> ()
+
+duplicated logical functions
+  (none)

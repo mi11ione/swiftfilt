@@ -1,0 +1,166 @@
+Demangling for $s10AppIntents0aB8XPCErrorO9errorCodeSivg
+kind=Global
+  kind=Getter
+    kind=Variable
+      kind=Enum
+        kind=Module, text="AppIntents"
+        kind=Identifier, text="AppIntentsXPCError"
+      kind=Identifier, text="errorCode"
+      kind=Type
+        kind=Structure
+          kind=Module, text="Swift"
+          kind=Identifier, text="Int"
+
+Demangling for $s7Testing4JSONO6decode_4fromxxm_SWtKSeRzlFZxyKXEfU_
+kind=Global
+  kind=ExplicitClosure
+    kind=Static
+      kind=Function
+        kind=Enum
+          kind=Module, text="Testing"
+          kind=Identifier, text="JSON"
+        kind=Identifier, text="decode"
+        kind=LabelList
+          kind=FirstElementMarker
+          kind=Identifier, text="from"
+        kind=Type
+          kind=DependentGenericType
+            kind=DependentGenericSignature
+              kind=DependentGenericParamCount, index=1
+              kind=DependentGenericConformanceRequirement
+                kind=Type
+                  kind=DependentGenericParamType
+                    kind=Index, index=0
+                    kind=Index, index=0
+                kind=Type
+                  kind=Protocol
+                    kind=Module, text="Swift"
+                    kind=Identifier, text="Decodable"
+            kind=Type
+              kind=FunctionType
+                kind=ThrowsAnnotation
+                kind=ArgumentTuple
+                  kind=Type
+                    kind=Tuple
+                      kind=TupleElement
+                        kind=Type
+                          kind=Metatype
+                            kind=Type
+                              kind=DependentGenericParamType
+                                kind=Index, index=0
+                                kind=Index, index=0
+                      kind=TupleElement
+                        kind=Type
+                          kind=Structure
+                            kind=Module, text="Swift"
+                            kind=Identifier, text="UnsafeRawBufferPointer"
+                kind=ReturnType
+                  kind=Type
+                    kind=DependentGenericParamType
+                      kind=Index, index=0
+                      kind=Index, index=0
+    kind=Number, index=0
+    kind=Type
+      kind=NoEscapeFunctionType
+        kind=ThrowsAnnotation
+        kind=ArgumentTuple
+          kind=Type
+            kind=Tuple
+        kind=ReturnType
+          kind=Type
+            kind=DependentGenericParamType
+              kind=Index, index=0
+              kind=Index, index=0
+
+Demangling for $s4main3fooyyFSi_Tg5
+kind=Global
+  kind=GenericSpecialization
+    kind=SpecializationPassID, index=5
+    kind=GenericSpecializationParam
+      kind=Type
+        kind=Structure
+          kind=Module, text="Swift"
+          kind=Identifier, text="Int"
+  kind=Function
+    kind=Module, text="main"
+    kind=Identifier, text="foo"
+    kind=Type
+      kind=FunctionType
+        kind=ArgumentTuple
+          kind=Type
+            kind=Tuple
+        kind=ReturnType
+          kind=Type
+            kind=Tuple
+
+Demangling for _$s3foo3barC3bas3zimyAaEC_tFTo
+kind=Global
+  kind=ObjCAttribute
+  kind=Function
+    kind=Class
+      kind=Module, text="foo"
+      kind=Identifier, text="bar"
+    kind=Identifier, text="bas"
+    kind=LabelList
+      kind=Identifier, text="zim"
+    kind=Type
+      kind=FunctionType
+        kind=ArgumentTuple
+          kind=Type
+            kind=Tuple
+              kind=TupleElement
+                kind=Type
+                  kind=Class
+                    kind=Module, text="foo"
+                    kind=Identifier, text="zim"
+        kind=ReturnType
+          kind=Type
+            kind=Tuple
+
+Demangling for _T013call_protocol1CCAA1PA2aDP3fooSiyFTW
+kind=Global
+  kind=ProtocolWitness
+    kind=ProtocolConformance
+      kind=Type
+        kind=Class
+          kind=Module, text="call_protocol"
+          kind=Identifier, text="C"
+      kind=Type
+        kind=Protocol
+          kind=Module, text="call_protocol"
+          kind=Identifier, text="P"
+      kind=Module, text="call_protocol"
+    kind=Function
+      kind=Protocol
+        kind=Module, text="call_protocol"
+        kind=Identifier, text="P"
+      kind=Identifier, text="foo"
+      kind=Type
+        kind=FunctionType
+          kind=ArgumentTuple
+            kind=Type
+              kind=Tuple
+          kind=ReturnType
+            kind=Type
+              kind=Structure
+                kind=Module, text="Swift"
+                kind=Identifier, text="Int"
+
+Demangling for _T03abc6testitySiFTm
+kind=Global
+  kind=MergedFunction
+  kind=Function
+    kind=Module, text="abc"
+    kind=Identifier, text="testit"
+    kind=LabelList
+    kind=Type
+      kind=FunctionType
+        kind=ArgumentTuple
+          kind=Type
+            kind=Structure
+              kind=Module, text="Swift"
+              kind=Identifier, text="Int"
+        kind=ReturnType
+          kind=Type
+            kind=Tuple
+

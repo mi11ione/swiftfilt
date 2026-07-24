@@ -1,0 +1,221 @@
+# Path: build/census-fixture
+# Arch: arm64
+# Object files:
+[  0] linker synthesized
+[  1] build/main.o
+[  2] /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/libSystem.tbd
+[  3] /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/system/libcompiler_rt.tbd
+[  4] /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/system/libsystem_c.tbd
+[  5] /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/system/libsystem_malloc.tbd
+[  6] /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/libobjc.tbd
+[  7] /Applications/Xcode-beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/usr/lib/swift/libswiftCore.tbd
+# Sections:
+# Address	Size    	Segment	Section
+0x100000A20	0x00000D34	__TEXT	__text
+0x100001754	0x00000108	__TEXT	__stubs
+0x100001860	0x0000008A	__TEXT	__const
+0x1000018EA	0x00000058	__TEXT	__swift5_typeref
+0x100001944	0x00000008	__TEXT	__swift5_entry
+0x10000194C	0x00000070	__TEXT	__swift5_fieldmd
+0x1000019BC	0x000000A8	__TEXT	__constg_swiftt
+0x100001A64	0x0000001A	__TEXT	__swift5_reflstr
+0x100001A80	0x0000001B	__TEXT	__objc_classname
+0x100001A9B	0x0000000E	__TEXT	__objc_methname
+0x100001AA9	0x00000001	__TEXT	__objc_methtype
+0x100001AAC	0x00000004	__TEXT	__swift5_protos
+0x100001AB0	0x00000008	__TEXT	__swift5_proto
+0x100001AB8	0x0000000C	__TEXT	__swift5_types
+0x100001AC4	0x000000C0	__TEXT	__unwind_info
+0x100004000	0x00000148	__DATA_CONST	__const
+0x100004148	0x00000008	__DATA_CONST	__objc_classlist
+0x100004150	0x00000008	__DATA_CONST	__objc_imageinfo
+0x100004158	0x000000F0	__DATA_CONST	__got
+0x100008000	0x000000D8	__DATA	__objc_const
+0x1000080D8	0x000000D0	__DATA	__data
+# Symbols:
+# Address	Size    	File  Name
+0x100000000	0x00000000	[  0] __mh_execute_header
+0x100000A20	0x00000018	[  1] _main
+0x100000A38	0x000006D4	[  1] _$s13CensusFixture4mainyyF
+0x10000110C	0x00000020	[  1] _$s13CensusFixture6LedgerCMa
+0x10000112C	0x00000024	[  1] ___swift_project_boxed_opaque_existential_1
+0x100001150	0x00000024	[  1] _$s13CensusFixture6CircleVAA5ShapeA2aDP4areaSdvgTW
+0x100001174	0x0000001C	[  1] _$s13CensusFixture6CircleVAA5ShapeA2aDP8describeSSyFTW
+0x100001190	0x0000000C	[  1] _$s13CensusFixture3BoxVAA5ShapeA2aDP4areaSdvgTW
+0x10000119C	0x00000014	[  1] _$s13CensusFixture3BoxVAA5ShapeA2aDP8describeSSyFTW
+0x1000011B0	0x00000064	[  1] _$s13CensusFixture6CircleVAA5ShapeA2aDP8describeSSyFTWTm
+0x100001214	0x0000003C	[  1] _$s13CensusFixture6LedgerCfD
+0x100001250	0x00000024	[  1] _$s13CensusFixture6LedgerCACycfC
+0x100001274	0x0000005C	[  1] _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlFSaySiG_Tg5
+0x1000012D0	0x0000005C	[  1] _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlFSaySdG_Tg5
+0x10000132C	0x0000012C	[  1] _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlFSaySSG_Tg5
+0x100001458	0x00000038	[  1] _$s13CensusFixture11neverCalledySiSaySiGF
+0x100001490	0x0000001C	[  1] _$ss15ContiguousArrayV16_createNewBuffer14bufferIsUnique15minimumCapacity13growForAppendySb_SiSbtFSS_Tg5
+0x1000014AC	0x00000108	[  1] _$ss22_ContiguousArrayBufferV20_consumeAndCreateNew14bufferIsUnique15minimumCapacity13growForAppendAByxGSb_SiSbtFSS_Tg5
+0x1000015B4	0x0000008C	[  1] _$s13CensusFixture6LedgerC3add_4noteyx_SStAA5ShapeRzlFTf4ndn_n
+0x100001640	0x00000050	[  1] ___swift_instantiateConcreteTypeFromMangledNameV2
+0x100001690	0x00000050	[  1] _$sSaySSGSayxGSKsWl
+0x1000016E0	0x00000054	[  1] ___swift_instantiateConcreteTypeFromMangledNameAbstractV2
+0x100001734	0x00000010	[  1] _$s13CensusFixture6CircleVMa
+0x100001744	0x00000010	[  1] _$s13CensusFixture3BoxVMa
+0x100001754	0x0000000C	[  7] _$sSKsSS7ElementRtzrlE6joined9separatorS2S_tF.stub
+0x100001760	0x0000000C	[  7] _$sSS6appendyySSF.stub
+0x10000176C	0x0000000C	[  7] _$sSd5write2toyxz_ts16TextOutputStreamRzlF.stub
+0x100001778	0x0000000C	[  7] _$ss11_StringGutsV4growyySiF.stub
+0x100001784	0x0000000C	[  7] _$ss23CustomStringConvertibleP11descriptionSSvgTj.stub
+0x100001790	0x0000000C	[  7] _$ss27_stringCompareWithSmolCheck__9expectingSbs11_StringGutsV_ADs01_G16ComparisonResultOtF.stub
+0x10000179C	0x0000000C	[  7] _$ss5print_9separator10terminatoryypd_S2StF.stub
+0x1000017A8	0x0000000C	[  5] _malloc_size.stub
+0x1000017B4	0x0000000C	[  4] _memmove.stub
+0x1000017C0	0x0000000C	[  6] _objc_opt_self.stub
+0x1000017CC	0x0000000C	[  7] _swift_allocObject.stub
+0x1000017D8	0x0000000C	[  7] _swift_arrayDestroy.stub
+0x1000017E4	0x0000000C	[  7] _swift_arrayInitWithCopy.stub
+0x1000017F0	0x0000000C	[  7] _swift_beginAccess.stub
+0x1000017FC	0x0000000C	[  7] _swift_bridgeObjectRelease.stub
+0x100001808	0x0000000C	[  7] _swift_bridgeObjectRetain.stub
+0x100001814	0x0000000C	[  7] _swift_deallocClassInstance.stub
+0x100001820	0x0000000C	[  7] _swift_getTypeByMangledNameInContext2.stub
+0x10000182C	0x0000000C	[  7] _swift_getTypeByMangledNameInContextInMetadataState2.stub
+0x100001838	0x0000000C	[  7] _swift_getWitnessTable.stub
+0x100001844	0x0000000C	[  7] _swift_initStackObject.stub
+0x100001850	0x0000000C	[  7] _swift_release.stub
+0x100001860	0x00000010	[  1] 16-byte-literal
+0x100001870	0x00000008	[  1] _$s13CensusFixture5Shape_pMR
+0x100001878	0x00000008	[  1] _$sSaySSGMR
+0x100001880	0x00000008	[  1] _$ss23_ContiguousArrayStorageCyypGMR
+0x100001888	0x00000010	[  1] _$s13CensusFixture6CircleVAA5ShapeAAMc
+0x100001898	0x00000010	[  1] _$s13CensusFixture3BoxVAA5ShapeAAMc
+0x1000018A8	0x0000000E	[  1] l_.str.13.CensusFixture
+0x1000018B6	0x00000006	[  1] l_.str.5.Shape
+0x1000018BC	0x00000007	[  1] l_.str.6.Circle
+0x1000018C3	0x00000005	[  1] l_.str.3.Box
+0x1000018C8	0x00000008	[  1] _$s13CensusFixture6LedgerC5totalSdvpWvd
+0x1000018D0	0x00000008	[  1] _$s13CensusFixture6LedgerC7entriesSivpWvd
+0x1000018D8	0x00000008	[  1] l_.str.6.Ledger
+0x1000018E0	0x00000008	[  1] _$ss23_ContiguousArrayStorageCySSGMR
+0x1000018E8	0x00000002	[  1] ___swift_reflection_version
+0x1000018EA	0x00000008	[  1] _symbolic ______p 13CensusFixture5ShapeP
+0x1000018F2	0x00000008	[  1] _symbolic SaySSG
+0x1000018FA	0x0000000A	[  1] _symbolic _____yypG s23_ContiguousArrayStorageC
+0x100001904	0x0000001A	[  1] _symbolic $s13CensusFixture5ShapeP
+0x10000191E	0x00000006	[  1] _symbolic _____ 13CensusFixture6CircleV
+0x100001924	0x00000004	[  1] _symbolic Sd
+0x100001928	0x00000006	[  1] _symbolic _____ 13CensusFixture3BoxV
+0x10000192E	0x00000006	[  1] _symbolic _____ 13CensusFixture6LedgerC
+0x100001934	0x00000004	[  1] _symbolic Si
+0x100001938	0x0000000A	[  1] _symbolic _____ySSG s23_ContiguousArrayStorageC
+0x100001944	0x00000008	[  1] l_entry_point
+0x10000194C	0x00000010	[  1] _$s13CensusFixture5Shape_pMF
+0x10000195C	0x0000001C	[  1] _$s13CensusFixture6CircleVMF
+0x100001978	0x0000001C	[  1] _$s13CensusFixture3BoxVMF
+0x100001994	0x00000028	[  1] _$s13CensusFixture6LedgerCMF
+0x1000019BC	0x0000000C	[  1] _$s13CensusFixtureMXM
+0x1000019C8	0x00000028	[  1] _$s13CensusFixture5ShapeMp
+0x1000019D8	0x00000000	[  1] _$s13CensusFixture5ShapeTL
+0x1000019F0	0x0000001C	[  1] _$s13CensusFixture6CircleVMn
+0x100001A0C	0x0000001C	[  1] _$s13CensusFixture3BoxVMn
+0x100001A28	0x0000003C	[  1] _$s13CensusFixture6LedgerCMn
+0x100001A5C	0x00000000	[  1] _$s13CensusFixture6LedgerCACycfCTq
+0x100001A64	0x00000007	[  1] l___unnamed_1
+0x100001A6B	0x00000005	[  1] l___unnamed_2
+0x100001A70	0x00000006	[  1] l___unnamed_3
+0x100001A76	0x00000008	[  1] l___unnamed_4
+0x100001A80	0x0000001B	[  1] literal string: _TtC13CensusFixture6Ledger
+0x100001A9B	0x00000008	[  1] literal string: entries
+0x100001AA3	0x00000006	[  1] literal string: total
+0x100001AA9	0x00000001	[  1] literal string: 
+0x100001AAC	0x00000004	[  1] l_$s13CensusFixture5ShapeHr
+0x100001AB0	0x00000004	[  1] l_$s13CensusFixture6CircleVAA5ShapeAAHc
+0x100001AB4	0x00000004	[  1] l_$s13CensusFixture3BoxVAA5ShapeAAHc
+0x100001AB8	0x00000004	[  1] l_$s13CensusFixture6CircleVHn
+0x100001ABC	0x00000004	[  1] l_$s13CensusFixture3BoxVHn
+0x100001AC0	0x00000004	[  1] l_$s13CensusFixture6LedgerCHn
+0x100001AC4	0x000000C0	[  0] compact unwind info
+0x100004000	0x00000040	[  1] _$s13CensusFixture4mainyyFTv_r
+0x100004040	0x00000038	[  1] _$s13CensusFixture4mainyyFTv0_r
+0x100004078	0x00000050	[  1] _$s13CensusFixture4mainyyFTv1_r
+0x1000040C8	0x00000018	[  1] _$s13CensusFixture6CircleVAA5ShapeAAWP
+0x1000040E0	0x00000018	[  1] _$s13CensusFixture3BoxVAA5ShapeAAWP
+0x1000040F8	0x00000028	[  1] _$s13CensusFixture6CircleVMf
+0x100004108	0x00000000	[  1] _$s13CensusFixture6CircleVN
+0x100004120	0x00000028	[  1] _$s13CensusFixture3BoxVMf
+0x100004130	0x00000000	[  1] _$s13CensusFixture3BoxVN
+0x100004148	0x00000008	[  1] anon
+0x100004150	0x00000008	[  0] anon
+0x100004158	0x00000008	[  5] _malloc_size.got
+0x100004160	0x00000008	[  4] _memmove.got
+0x100004168	0x00000008	[  6] _objc_opt_self.got
+0x100004170	0x00000008	[  7] _$sSKsSS7ElementRtzrlE6joined9separatorS2S_tF.got
+0x100004178	0x00000008	[  7] _$sSS6appendyySSF.got
+0x100004180	0x00000008	[  7] _$sSSN.got
+0x100004188	0x00000008	[  7] _$sSayxGSKsMc.got
+0x100004190	0x00000008	[  7] _$sSd5write2toyxz_ts16TextOutputStreamRzlF.got
+0x100004198	0x00000008	[  7] _$sSiN.got
+0x1000041A0	0x00000008	[  7] _$sSis23CustomStringConvertiblesWP.got
+0x1000041A8	0x00000008	[  7] _$ss11_StringGutsV4growyySiF.got
+0x1000041B0	0x00000008	[  7] _$ss23CustomStringConvertibleP11descriptionSSvgTj.got
+0x1000041B8	0x00000008	[  7] _$ss23_ContiguousArrayStorageCMn.got
+0x1000041C0	0x00000008	[  7] _$ss26DefaultStringInterpolationVN.got
+0x1000041C8	0x00000008	[  7] _$ss26DefaultStringInterpolationVs16TextOutputStreamsWP.got
+0x1000041D0	0x00000008	[  7] _$ss27_stringCompareWithSmolCheck__9expectingSbs11_StringGutsV_ADs01_G16ComparisonResultOtF.got
+0x1000041D8	0x00000008	[  7] _$ss5print_9separator10terminatoryypd_S2StF.got
+0x1000041E0	0x00000008	[  7] __swiftEmptyArrayStorage.got
+0x1000041E8	0x00000008	[  7] _swift_allocObject.got
+0x1000041F0	0x00000008	[  7] _swift_arrayDestroy.got
+0x1000041F8	0x00000008	[  7] _swift_arrayInitWithCopy.got
+0x100004200	0x00000008	[  7] _swift_beginAccess.got
+0x100004208	0x00000008	[  7] _swift_bridgeObjectRelease.got
+0x100004210	0x00000008	[  7] _swift_bridgeObjectRetain.got
+0x100004218	0x00000008	[  7] _swift_deallocClassInstance.got
+0x100004220	0x00000008	[  7] _swift_getTypeByMangledNameInContext2.got
+0x100004228	0x00000008	[  7] _swift_getTypeByMangledNameInContextInMetadataState2.got
+0x100004230	0x00000008	[  7] _swift_getWitnessTable.got
+0x100004238	0x00000008	[  7] _swift_initStackObject.got
+0x100004240	0x00000008	[  7] _swift_release.got
+0x100008000	0x00000048	[  1] __METACLASS_DATA__TtC13CensusFixture6Ledger
+0x100008048	0x00000048	[  1] __IVARS__TtC13CensusFixture6Ledger
+0x100008090	0x00000048	[  1] __DATA__TtC13CensusFixture6Ledger
+0x1000080D8	0x00000008	[  1] _$s13CensusFixture5Shape_pMd
+0x1000080E0	0x00000008	[  1] _$sSaySSGMd
+0x1000080E8	0x00000008	[  1] _$sSaySSGSayxGSKsWL
+0x1000080F0	0x00000008	[  1] _$ss23_ContiguousArrayStorageCyypGMd
+0x1000080F8	0x00000028	[  1] _$s13CensusFixture6LedgerCMm
+0x100008120	0x00000080	[  1] _$s13CensusFixture6LedgerCMf
+0x100008138	0x00000000	[  1] _$s13CensusFixture6LedgerCN
+0x1000081A0	0x00000008	[  1] _$ss23_ContiguousArrayStorageCySSGMd
+
+# Dead Stripped Symbols:
+#        	Size    	File  Name
+<<dead>>	0x00000004	[  1] _$s13CensusFixture6CircleV6radiusSdvg
+<<dead>>	0x00000010	[  1] _$s13CensusFixture6CircleV6radiusSdvM
+<<dead>>	0x00000004	[  1] _$s13CensusFixture6CircleV6radiusSdvM.resume.0
+<<dead>>	0x00000020	[  1] _$s13CensusFixture6CircleV4areaSdvg
+<<dead>>	0x0000001C	[  1] _$s13CensusFixture6CircleV8describeSSyF
+<<dead>>	0x00000004	[  1] _$s13CensusFixture6CircleV6radiusACSd_tcfC
+<<dead>>	0x00000004	[  1] _$s13CensusFixture3BoxV4sideSdvg
+<<dead>>	0x00000008	[  1] _$s13CensusFixture3BoxV4sideSdvs
+<<dead>>	0x00000010	[  1] _$s13CensusFixture3BoxV4sideSdvM
+<<dead>>	0x00000004	[  1] _$s13CensusFixture3BoxV4sideSdvM.resume.0
+<<dead>>	0x00000008	[  1] _$s13CensusFixture3BoxV4areaSdvg
+<<dead>>	0x00000014	[  1] _$s13CensusFixture3BoxV8describeSSyF
+<<dead>>	0x0000005C	[  1] _$s13CensusFixture6CircleV8describeSSyFTm
+<<dead>>	0x00000004	[  1] _$s13CensusFixture3BoxV4sideACSd_tcfC
+<<dead>>	0x00000008	[  1] _$s13CensusFixture6LedgerC5totalSdvpfi
+<<dead>>	0x00000030	[  1] _$s13CensusFixture6LedgerC5totalSdvg
+<<dead>>	0x00000064	[  1] _$s13CensusFixture6LedgerC5totalSdvs
+<<dead>>	0x00000034	[  1] _$s13CensusFixture6LedgerC5totalSdvM
+<<dead>>	0x00000054	[  1] _$s13CensusFixture6LedgerC5totalSdvM.resume.0
+<<dead>>	0x00000008	[  1] _$s13CensusFixture6LedgerC7entriesSivpfi
+<<dead>>	0x00000030	[  1] _$s13CensusFixture6LedgerC7entriesSivg
+<<dead>>	0x0000003C	[  1] _$s13CensusFixture6LedgerC7entriesSivs
+<<dead>>	0x0000000C	[  1] _$s13CensusFixture6LedgerC4nameSSvau
+<<dead>>	0x00000014	[  1] _$s13CensusFixture6LedgerC4nameSSvgZ
+<<dead>>	0x00000040	[  1] _$s13CensusFixture6LedgerC6scaledS2d_tcig
+<<dead>>	0x00000014	[  1] _$s13CensusFixture6LedgerC3add_4noteyx_SStAA5ShapeRzlFfA0_
+<<dead>>	0x0000000C	[  1] _$s13CensusFixture6LedgerC3add_4noteyx_SStAA5ShapeRzlF
+<<dead>>	0x00000034	[  1] _$s13CensusFixture6LedgerCfd
+<<dead>>	0x0000000C	[  1] _$s13CensusFixture6LedgerCACycfc
+<<dead>>	0x000005F0	[  1] _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlF
+<<dead>>	0x00000004	[  1] _$s13CensusFixture6CircleV6radiusSdvs
+<<dead>>	0x00000010	[  1] _$s13CensusFixture6LedgerC4nameSSvpZ

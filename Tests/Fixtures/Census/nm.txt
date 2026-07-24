@@ -1,0 +1,111 @@
+0000000100001458 T _$s13CensusFixture11neverCalledySiSaySiGF
+0000000100001190 t _$s13CensusFixture3BoxVAA5ShapeA2aDP4areaSdvgTW
+000000010000119c t _$s13CensusFixture3BoxVAA5ShapeA2aDP8describeSSyFTW
+0000000100001898 s _$s13CensusFixture3BoxVAA5ShapeAAMc
+00000001000040e0 s _$s13CensusFixture3BoxVAA5ShapeAAWP
+0000000100001978 s _$s13CensusFixture3BoxVMF
+0000000100001744 t _$s13CensusFixture3BoxVMa
+0000000100004120 s _$s13CensusFixture3BoxVMf
+0000000100001a0c s _$s13CensusFixture3BoxVMn
+0000000100004130 s _$s13CensusFixture3BoxVN
+0000000100000a38 t _$s13CensusFixture4mainyyF
+0000000100004040 s _$s13CensusFixture4mainyyFTv0_r
+0000000100004078 s _$s13CensusFixture4mainyyFTv1_r
+0000000100004000 s _$s13CensusFixture4mainyyFTv_r
+00000001000019c8 s _$s13CensusFixture5ShapeMp
+00000001000019d8 s _$s13CensusFixture5ShapeTL
+000000010000194c s _$s13CensusFixture5Shape_pMF
+0000000100001870 s _$s13CensusFixture5Shape_pMR
+00000001000080d8 d _$s13CensusFixture5Shape_pMd
+000000010000132c t _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlFSaySSG_Tg5
+00000001000012d0 t _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlFSaySdG_Tg5
+0000000100001274 t _$s13CensusFixture5tallyySixSlRzSQ7ElementRpzlFSaySiG_Tg5
+0000000100001150 t _$s13CensusFixture6CircleVAA5ShapeA2aDP4areaSdvgTW
+0000000100001174 t _$s13CensusFixture6CircleVAA5ShapeA2aDP8describeSSyFTW
+00000001000011b0 t _$s13CensusFixture6CircleVAA5ShapeA2aDP8describeSSyFTWTm
+0000000100001888 s _$s13CensusFixture6CircleVAA5ShapeAAMc
+00000001000040c8 s _$s13CensusFixture6CircleVAA5ShapeAAWP
+000000010000195c s _$s13CensusFixture6CircleVMF
+0000000100001734 t _$s13CensusFixture6CircleVMa
+00000001000040f8 s _$s13CensusFixture6CircleVMf
+00000001000019f0 s _$s13CensusFixture6CircleVMn
+0000000100004108 s _$s13CensusFixture6CircleVN
+00000001000015b4 t _$s13CensusFixture6LedgerC3add_4noteyx_SStAA5ShapeRzlFTf4ndn_n
+00000001000018c8 s _$s13CensusFixture6LedgerC5totalSdvpWvd
+00000001000018d0 s _$s13CensusFixture6LedgerC7entriesSivpWvd
+0000000100001250 t _$s13CensusFixture6LedgerCACycfC
+0000000100001a5c s _$s13CensusFixture6LedgerCACycfCTq
+0000000100001994 s _$s13CensusFixture6LedgerCMF
+000000010000110c t _$s13CensusFixture6LedgerCMa
+0000000100008120 d _$s13CensusFixture6LedgerCMf
+00000001000080f8 d _$s13CensusFixture6LedgerCMm
+0000000100001a28 s _$s13CensusFixture6LedgerCMn
+0000000100008138 d _$s13CensusFixture6LedgerCN
+0000000100001214 t _$s13CensusFixture6LedgerCfD
+00000001000019bc s _$s13CensusFixtureMXM
+                 U _$sBi64_WV
+                 U _$sBoWV
+                 U _$sSKsSS7ElementRtzrlE6joined9separatorS2S_tF
+                 U _$sSS6appendyySSF
+                 U _$sSSN
+0000000100001878 s _$sSaySSGMR
+00000001000080e0 d _$sSaySSGMd
+00000001000080e8 d _$sSaySSGSayxGSKsWL
+0000000100001690 t _$sSaySSGSayxGSKsWl
+                 U _$sSayxGSKsMc
+                 U _$sSd5write2toyxz_ts16TextOutputStreamRzlF
+                 U _$sSiN
+                 U _$sSis23CustomStringConvertiblesWP
+                 U _$ss11_StringGutsV4growyySiF
+0000000100001490 t _$ss15ContiguousArrayV16_createNewBuffer14bufferIsUnique15minimumCapacity13growForAppendySb_SiSbtFSS_Tg5
+                 U _$ss20__StaticArrayStorageCN
+00000001000014ac t _$ss22_ContiguousArrayBufferV20_consumeAndCreateNew14bufferIsUnique15minimumCapacity13growForAppendAByxGSb_SiSbtFSS_Tg5
+                 U _$ss23CustomStringConvertibleP11descriptionSSvgTj
+                 U _$ss23_ContiguousArrayStorageCMn
+00000001000018e0 s _$ss23_ContiguousArrayStorageCySSGMR
+00000001000081a0 d _$ss23_ContiguousArrayStorageCySSGMd
+0000000100001880 s _$ss23_ContiguousArrayStorageCyypGMR
+00000001000080f0 d _$ss23_ContiguousArrayStorageCyypGMd
+                 U _$ss26DefaultStringInterpolationVN
+                 U _$ss26DefaultStringInterpolationVs16TextOutputStreamsWP
+                 U _$ss27_stringCompareWithSmolCheck__9expectingSbs11_StringGutsV_ADs01_G16ComparisonResultOtF
+                 U _$ss5print_9separator10terminatoryypd_S2StF
+                 U _OBJC_CLASS_$__TtCs12_SwiftObject
+                 U _OBJC_METACLASS_$__TtCs12_SwiftObject
+0000000100008090 s __DATA__TtC13CensusFixture6Ledger
+0000000100008048 s __IVARS__TtC13CensusFixture6Ledger
+0000000100008000 s __METACLASS_DATA__TtC13CensusFixture6Ledger
+00000001000016e0 t ___swift_instantiateConcreteTypeFromMangledNameAbstractV2
+0000000100001640 t ___swift_instantiateConcreteTypeFromMangledNameV2
+000000010000112c t ___swift_project_boxed_opaque_existential_1
+00000001000018e8 s ___swift_reflection_version
+0000000100000000 T __mh_execute_header
+                 U __objc_empty_cache
+                 U __swiftEmptyArrayStorage
+                 U __swiftImmortalRefCount
+0000000100000a20 T _main
+                 U _malloc_size
+                 U _memmove
+                 U _objc_opt_self
+                 U _swift_allocObject
+                 U _swift_arrayDestroy
+                 U _swift_arrayInitWithCopy
+                 U _swift_beginAccess
+                 U _swift_bridgeObjectRelease
+                 U _swift_bridgeObjectRetain
+                 U _swift_deallocClassInstance
+                 U _swift_getTypeByMangledNameInContext2
+                 U _swift_getTypeByMangledNameInContextInMetadataState2
+                 U _swift_getWitnessTable
+                 U _swift_initStackObject
+                 U _swift_release
+0000000100001904 s _symbolic $s13CensusFixture5ShapeP
+00000001000018f2 s _symbolic SaySSG
+0000000100001924 s _symbolic Sd
+0000000100001934 s _symbolic Si
+0000000100001928 s _symbolic _____ 13CensusFixture3BoxV
+000000010000191e s _symbolic _____ 13CensusFixture6CircleV
+000000010000192e s _symbolic _____ 13CensusFixture6LedgerC
+00000001000018ea s _symbolic ______p 13CensusFixture5ShapeP
+0000000100001938 s _symbolic _____ySSG s23_ContiguousArrayStorageC
+00000001000018fa s _symbolic _____yypG s23_ContiguousArrayStorageC

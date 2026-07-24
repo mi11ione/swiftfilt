@@ -1,0 +1,139 @@
+# Copyright (c) 2026 Roman Zhuzhgov
+# Licensed under the Apache License, Version 2.0
+#
+# Nightly sweep (trust layer 3): the totality battery at acceptance
+# scale on both platforms (≈8.65M derived items at --items 1120000 —
+# random bytes, prefixed garbage, truncation sweeps, deep nesting,
+# huge inputs, invalid UTF-8 through the byte scanner, demangleAll
+# pass-through; any crash or hang fails the job), the full fixture
+# parity legs re-run on a schedule (so oracle drift on the runner
+# image surfaces even between PRs), and the benchmark regression
+# smoke.
+#
+# The external-corpus leg runs only where a runner carries the
+# multi-GB real-symbol corpus manifest, advertised through the
+# repository variables SWIFTFILT_CORPUS_RUNNER and
+# SWIFTFILT_DEMANGLE_CORPUS; on ordinary hosted runners it skips
+# with a notice, never silently.
+
+name: Nightly
+
+on:
+  schedule:
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Container jobs (swift:6.1) default to sh, which rejects `set -o pipefail`.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  totality:
+    name: Totality at acceptance scale (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            label: macOS
+            container: ""
+          - os: ubuntu-24.04
+            label: Linux
+            container: swift:6.1
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build parity instrument (release)
+        run: swift build -c release --product swiftfilt-parity
+      - name: Totality battery (seeded, deterministic, per-item watchdog)
+        run: .build/release/swiftfilt-parity total --items 1120000
+
+  fixture-legs:
+    name: Full fixture legs (macOS)
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build parity instrument (release)
+        run: swift build -c release --product swiftfilt-parity
+      - name: Corpus — committed fixtures, every leg
+        run: .build/release/swiftfilt-parity corpus
+      - name: Selfcheck — proof that the gate gates
+        run: .build/release/swiftfilt-parity selfcheck
+      - name: Live — fixture set vs the oracle, all seven legs
+        run: .build/release/swiftfilt-parity live
+      - name: Roundtrip — demangle → remangle → adjudicate
+        run: .build/release/swiftfilt-parity roundtrip
+
+  bench-smoke:
+    name: Benchmark regression smoke
+    # The benchmark regression guard: build the Benchmarks package (its
+    # own SwiftPM package — keeps the root dependency-free) and run the
+    # smoke against the checked-in baseline. CAVEAT (documented in the
+    # baseline file too): the thresholds are HOST-CLASS-RELATIVE,
+    # recorded on an Apple M4 development machine, and this job is
+    # CI-UNTESTED — on the first run, if the runner's host class
+    # differs enough to breach, re-record `Benchmarks/baseline.json`
+    # from that run's smoke output and keep the tolerance. Failures
+    # after that are real regressions (or a runner hardware change,
+    # which the log's machine block shows).
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build benchmarks (release)
+        working-directory: Benchmarks
+        run: swift build -c release
+      - name: Smoke vs baseline (one-sided tolerance in baseline.json)
+        working-directory: Benchmarks
+        run: |
+          set -o pipefail
+          .build/release/swiftfilt-bench smoke --json --baseline baseline.json | tee bench-smoke.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: bench-smoke-results
+          path: Benchmarks/bench-smoke.json
+
+  external-corpus:
+    name: External-corpus live sweep (when configured)
+    # Two repository variables light this job up: SWIFTFILT_CORPUS_RUNNER
+    # is the runs-on label of the corpus-bearing machine (e.g. a
+    # self-hosted label; defaults to macos-15, where the job skips with
+    # a notice), and SWIFTFILT_DEMANGLE_CORPUS is the manifest.tsv path
+    # on that machine (rows: mangled<TAB>first_binary<TAB>occurrences).
+    # Both must be set for the leg to actually run. The nightly samples
+    # a 2M-row prefix; the full 13M-row sweep is the release ritual
+    # (Scripts/acceptance-live-chunks.sh).
+    runs-on: ${{ vars.SWIFTFILT_CORPUS_RUNNER || 'macos-15' }}
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check corpus configuration
+        id: corpus
+        env:
+          CORPUS: ${{ vars.SWIFTFILT_DEMANGLE_CORPUS }}
+        run: |
+          if [ -z "$CORPUS" ]; then
+            echo "::notice::SWIFTFILT_DEMANGLE_CORPUS repository variable not set — external-corpus parity skipped (runs only on a runner that carries the corpus manifest)"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          elif [ ! -f "$CORPUS" ]; then
+            echo "::warning::SWIFTFILT_DEMANGLE_CORPUS=$CORPUS is set but the file does not exist on this runner — skipping"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build parity instrument (release)
+        if: steps.corpus.outputs.configured == 'true'
+        run: swift build -c release --product swiftfilt-parity
+      - name: Live — external corpus, 2M-row nightly slice
+        if: steps.corpus.outputs.configured == 'true'
+        env:
+          SWIFTFILT_DEMANGLE_CORPUS: ${{ vars.SWIFTFILT_DEMANGLE_CORPUS }}
+        run: .build/release/swiftfilt-parity live --limit 2000000 --tag nightly

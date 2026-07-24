@@ -1,0 +1,121 @@
+# Copyright (c) 2026 Roman Zhuzhgov
+# Licensed under the Apache License, Version 2.0
+#
+# Release pipeline: pushing a semver tag builds prebuilt `swiftfilt`
+# binaries (macOS universal, Linux x86_64 + aarch64), checksums them,
+# and attaches everything to an auto-created GitHub Release.
+# `install.sh` and the Homebrew tap consume these artifacts.
+#
+# The tag must equal `CLI.version` (Sources/SwiftFiltCLICore/CLI.swift),
+# the package's single source of truth — the macOS job verifies the
+# built binary's --version against the tag and fails on a mismatch.
+#
+# Binaries are unsigned by design at this stage: both install paths
+# (curl script, brew) fetch without a quarantine attribute. Developer ID
+# notarization can be added later as a secrets-gated step.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  macos:
+    name: macOS universal binary
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      # Per-triple SwiftPM builds + lipo: the dual --arch path routes
+      # through the Xcode build system, which fails on some runner
+      # toolchains (duplicate-output and language-version probing bugs).
+      - name: Build (release, arm64 + x86_64)
+        run: |
+          set -o pipefail
+          swift build -c release --triple arm64-apple-macosx --product swiftfilt 2>&1 | tee build-arm64.log
+          swift build -c release --triple x86_64-apple-macosx --product swiftfilt 2>&1 | tee build-x86_64.log
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          mkdir -p staging
+          lipo -create \
+            .build/arm64-apple-macosx/release/swiftfilt \
+            .build/x86_64-apple-macosx/release/swiftfilt \
+            -output staging/swiftfilt
+          lipo -info staging/swiftfilt
+          staging/swiftfilt --version
+          if [ "$(staging/swiftfilt --version)" != "swiftfilt ${VERSION}" ]; then
+            echo "::error::tag ${VERSION} does not match the built binary's --version — update CLI.version (Sources/SwiftFiltCLICore/CLI.swift) or retag"
+            exit 1
+          fi
+          tar -czf "swiftfilt-${VERSION}-macos-universal.tar.gz" -C staging swiftfilt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos-universal
+          path: swiftfilt-*-macos-universal.tar.gz
+          if-no-files-found: error
+
+  linux:
+    name: Linux ${{ matrix.suffix }} binary
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            suffix: x86_64
+          - runner: ubuntu-24.04-arm
+            suffix: aarch64
+    runs-on: ${{ matrix.runner }}
+    container: swift:6.1
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build (release, static Swift stdlib)
+        run: |
+          set -o pipefail
+          swift build -c release --static-swift-stdlib --product swiftfilt 2>&1 | tee build.log
+      - name: Package
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          .build/release/swiftfilt --version
+          if [ "$(.build/release/swiftfilt --version)" != "swiftfilt ${VERSION}" ]; then
+            echo "::error::tag ${VERSION} does not match the built binary's --version — update CLI.version (Sources/SwiftFiltCLICore/CLI.swift) or retag"
+            exit 1
+          fi
+          tar -czf "swiftfilt-${VERSION}-linux-${{ matrix.suffix }}.tar.gz" -C .build/release swiftfilt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.suffix }}
+          path: swiftfilt-*-linux-*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: [macos, linux]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          sha256sum swiftfilt-*.tar.gz | tee checksums.txt
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          gh release create "${VERSION}" \
+            swiftfilt-*.tar.gz checksums.txt \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "${VERSION}" \
+            --notes "Prebuilt \`swiftfilt\` binaries: macOS universal (arm64 + x86_64), Linux x86_64 and aarch64 (static Swift stdlib). Install with the one-liner in the README, \`brew install mi11ione/tap/swiftfilt\`, or download and verify against \`checksums.txt\`."

@@ -1,0 +1,12 @@
+{"schemaVersion":1,"kind":"census","format":"bare","weight":"count","detection":"no linkmap header and line 1 of the sample is not an nm row; treated as bare text","lines":18,"rows":6,"swift":6,"machinery":2,"human":4,"specialized":1,"unattributedSpecializations":0}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"function","count":3}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"accessor.getter","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"closure","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"kinds","name":"protocolWitness","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"AppIntents","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"Testing","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"abc","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"call_protocol","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"foo","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"modules","name":"main","count":1}
+{"schemaVersion":1,"kind":"censusRow","table":"specializations","name":"main.foo() -> ()","count":1}

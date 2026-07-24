@@ -1,0 +1,3 @@
+[1m/Users/dev/MyApp/Sources/main.swift:14:9: [0m[0;1;31merror: [0m[1mcannot find symbol $s4main3fooyyFSi_Tg5 in scope[0m
+Compiling Swift Module 'MyApp' (3 sources)
+[33mwarning:[0m witness _T013call_protocol1CCAA1PA2aDP3fooSiyFTW shadows earlier declaration

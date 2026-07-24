@@ -1,0 +1,75 @@
+# Copyright (c) 2026 Roman Zhuzhgov
+# Licensed under the Apache License, Version 2.0
+#
+# Proves the reach the zero-import design buys: the `SwiftFilt` LIBRARY
+# (no imports, not even Foundation) compiles on Windows and
+# cross-compiles for Android. The parity instrument is macOS/Linux only
+# by design (Foundation + subprocess). The CLI's stdio shim is
+# POSIX/ucrt-guarded, so the Windows job additionally ATTEMPTS the CLI
+# in a separate job — a CLI failure there is a finding about the shim,
+# never a verdict on the library, which is why they are two jobs.
+
+name: Platforms
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  windows-library:
+    name: Windows (library)
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.1"
+      - uses: actions/checkout@v6
+      - name: Build the SwiftFilt library
+        run: swift build --target SwiftFilt -c release
+
+  windows-cli:
+    name: Windows (CLI, best-effort)
+    # The CLI's only platform code is the ucrt-guarded stdio shim
+    # (_read/_write/_isatty/_setmode) and pthread wide-stack setup
+    # (inline fallback on Windows). This job proves — or disproves —
+    # that the guard actually compiles and the binary answers
+    # --version. It is its own job so a failure here never marks the
+    # library leg red.
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.1"
+      - uses: actions/checkout@v6
+      - name: Build the swiftfilt CLI
+        run: swift build --product swiftfilt -c release
+      - name: Run --version and one demangle
+        run: |
+          BIN="$(swift build --product swiftfilt -c release --show-bin-path)/swiftfilt.exe"
+          "$BIN" --version
+          "$BIN" '$s4main3fooyyF'
+
+  android:
+    name: Android (library, cross-compiled)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cross-compile the SwiftFilt library for Android (aarch64)
+        uses: skiptools/swift-android-action@main
+        with:
+          build-package: true
+          build-tests: false
+          run-tests: false
+          swift-build-flags: "--target SwiftFilt"

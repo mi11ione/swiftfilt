@@ -19,6 +19,46 @@ public struct SubprocessResult: Sendable {
     public let timedOut: Bool
 }
 
+/// Bridge one blocking pipe operation onto its own thread. The drains and
+/// the stdin feed each block until EOF, which must not happen on a
+/// cooperative-pool thread: that pool is sized to the core count, and three
+/// blocked threads per child starve it once batches run concurrently.
+private func onBlockingThread<T: Sendable>(_ body: @Sendable @escaping () -> T) async -> T {
+    await withCheckedContinuation { (continuation: CheckedContinuation<T, Never>) in
+        Thread { continuation.resume(returning: body()) }.start()
+    }
+}
+
+/// Feed the child's stdin and close it, so its reader sees EOF.
+private func feedStdin(_ pipe: Pipe?, _ data: Data?) async {
+    guard let pipe, let data else { return }
+    let handle = pipe.fileHandleForWriting
+    await onBlockingThread {
+        // Feed via raw POSIX write(2): a child that closes its stdin early
+        // returns EPIPE here, which we treat as a short write. Foundation's
+        // FileHandle.write(_:) instead wraps that EPIPE in a `try!` that traps
+        // the whole process (the SIGPIPE ignore below stops the signal, not
+        // the trap).
+        let fd = handle.fileDescriptor
+        data.withUnsafeBytes { raw in
+            guard var base = raw.baseAddress else { return }
+            var remaining = raw.count
+            while remaining > 0 {
+                let n = write(fd, base, remaining)
+                if n > 0 {
+                    base = base.advanced(by: n)
+                    remaining -= n
+                } else if n < 0, errno == EINTR {
+                    continue
+                } else {
+                    break // EPIPE (child gone) or other error: stop feeding
+                }
+            }
+        }
+        try? handle.close()
+    }
+}
+
 /// Run `launchPath args...`, feeding `stdin`, draining both output pipes
 /// concurrently with the write. Returns `nil` only when the process cannot
 /// be launched at all; a timeout returns a result with `timedOut` set.
@@ -27,15 +67,18 @@ public func runSubprocess(
     _ args: [String],
     stdin: Data? = nil,
     timeoutSeconds: Double = 120,
-) -> SubprocessResult? {
+) async -> SubprocessResult? {
+    // Process and Pipe are Sendable, and the legs below divide them cleanly:
+    // each pipe end is touched by exactly one task, and the watchdog only
+    // calls the process's own thread-safe terminate/isRunning/waitUntilExit.
     let process = Process()
     process.executableURL = URL(fileURLWithPath: launchPath)
     process.arguments = args
 
-    // A child that closes its stdin early makes the feed below hit EPIPE;
-    // ignore SIGPIPE so that surfaces as a write error (handled) rather than
-    // a fatal signal. Set here so the oracle is robust whether it is driven
-    // by the tool's entry point or directly by a parity test.
+    // A child that closes its stdin early makes the feed hit EPIPE; ignore
+    // SIGPIPE so that surfaces as a write error (handled) rather than a fatal
+    // signal. Set here so the oracle is robust whether it is driven by the
+    // tool's entry point or directly by a parity test.
     signal(SIGPIPE, SIG_IGN)
 
     let outPipe = Pipe()
@@ -53,71 +96,48 @@ public func runSubprocess(
         return nil
     }
 
-    // Watchdog: SIGTERM at the deadline (a chance to exit cleanly),
-    // SIGKILL for a child that ignores it.
+    // Feed and drain concurrently: a sequential drain deadlocks when the child
+    // floods one pipe before the other reaches EOF.
+    async let fed: Void = feedStdin(inPipe, stdin)
+    async let outData: Data = onBlockingThread { outPipe.fileHandleForReading.readDataToEndOfFile() }
+    async let errData: Data = onBlockingThread { errPipe.fileHandleForReading.readDataToEndOfFile() }
+
+    // Watchdog: SIGTERM at the deadline (a chance to exit cleanly), SIGKILL
+    // for a child that ignores it. Racing it against the child's own exit
+    // means "did the deadline kill this?" arrives as the winner's value —
+    // there is no flag for the two to race over. The group awaits both legs,
+    // so the child is always reaped by the time this returns.
     let sigkillGraceSeconds = 5.0
-    let pid = process.processIdentifier
-    let escalation = DispatchWorkItem {
-        if process.isRunning { kill(pid, SIGKILL) }
-    }
-    let killer = DispatchWorkItem {
-        process.terminate()
-        DispatchQueue.global().asyncAfter(deadline: .now() + sigkillGraceSeconds, execute: escalation)
-    }
-    DispatchQueue.global().asyncAfter(deadline: .now() + timeoutSeconds, execute: killer)
-
-    let group = DispatchGroup()
-    nonisolated(unsafe) var outData = Data()
-    nonisolated(unsafe) var errData = Data()
-
-    if let inPipe, let stdin {
-        group.enter()
-        DispatchQueue.global().async {
-            let handle = inPipe.fileHandleForWriting
-            // Feed the child via raw POSIX write(2): a child that closes its
-            // stdin early returns EPIPE here, which we treat as a short write.
-            // Foundation's FileHandle.write(_:) instead wraps that EPIPE in a
-            // `try!` that traps the whole process (the SIGPIPE ignore above
-            // stops the signal, not the trap).
-            let fd = handle.fileDescriptor
-            stdin.withUnsafeBytes { raw in
-                guard var base = raw.baseAddress else { return }
-                var remaining = raw.count
-                while remaining > 0 {
-                    let n = write(fd, base, remaining)
-                    if n > 0 {
-                        base = base.advanced(by: n)
-                        remaining -= n
-                    } else if n < 0, errno == EINTR {
-                        continue
-                    } else {
-                        break // EPIPE (child gone) or other error: stop feeding
-                    }
-                }
-            }
-            try? handle.close()
-            group.leave()
+    let killedByWatchdog = await withTaskGroup(of: Bool.self) { group in
+        group.addTask {
+            await onBlockingThread { process.waitUntilExit() }
+            return false
         }
+        group.addTask {
+            guard await (try? Task.sleep(nanoseconds: UInt64(timeoutSeconds * 1_000_000_000))) != nil
+            else { return false } // cancelled: the child exited on its own
+            guard process.isRunning else { return false } // exited right on the deadline
+            process.terminate()
+            if await (try? Task.sleep(nanoseconds: UInt64(sigkillGraceSeconds * 1_000_000_000))) != nil,
+               process.isRunning
+            {
+                kill(process.processIdentifier, SIGKILL)
+            }
+            return true
+        }
+        let winner = await group.next() ?? false
+        group.cancelAll()
+        return winner
     }
-    group.enter()
-    DispatchQueue.global().async {
-        outData = outPipe.fileHandleForReading.readDataToEndOfFile()
-        group.leave()
-    }
-    group.enter()
-    DispatchQueue.global().async {
-        errData = errPipe.fileHandleForReading.readDataToEndOfFile()
-        group.leave()
-    }
-    group.wait()
-    process.waitUntilExit()
 
-    let timedOut = !killer.isCancelled && process.terminationReason == .uncaughtSignal
-    killer.cancel()
-    escalation.cancel()
+    // Only a child that outlived the deadline AND died of a signal timed out.
+    // A child killed by some unrelated signal must not be reported as one:
+    // callers discard an entire timed-out run as unusable.
+    let timedOut = killedByWatchdog && process.terminationReason == .uncaughtSignal
 
+    await fed
     // Lenient decode: one non-UTF8 byte must not blank a multi-MB capture.
-    return SubprocessResult(
+    return await SubprocessResult(
         stdout: String(decoding: outData, as: UTF8.self),
         stderr: String(decoding: errData, as: UTF8.self),
         exitCode: process.terminationStatus,
@@ -130,8 +150,8 @@ public func runSubprocess(
 public enum Oracle {
     /// The tool path from `xcrun -f swift-demangle`, or `nil` when no
     /// toolchain is installed.
-    public static func locate() -> String? {
-        guard let result = runSubprocess("/usr/bin/xcrun", ["-f", "swift-demangle"], timeoutSeconds: 30),
+    public static func locate() async -> String? {
+        guard let result = await runSubprocess("/usr/bin/xcrun", ["-f", "swift-demangle"], timeoutSeconds: 30),
               result.exitCode == 0
         else { return nil }
         let path = result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -141,9 +161,9 @@ public enum Oracle {
     /// The oracle's identity for evidence records. `swift-demangle` has no
     /// version flag of its own; the sibling `swift` reports the
     /// `swiftlang-X.Y.Z…` build token that pins the toolchain exactly.
-    public static func identity(_ swiftDemanglePath: String) -> String {
+    public static func identity(_ swiftDemanglePath: String) async -> String {
         let swiftBin = (swiftDemanglePath as NSString).deletingLastPathComponent + "/swift"
-        if let result = runSubprocess(swiftBin, ["--version"], timeoutSeconds: 30), result.exitCode == 0 {
+        if let result = await runSubprocess(swiftBin, ["--version"], timeoutSeconds: 30), result.exitCode == 0 {
             if let range = result.stdout.range(of: "swiftlang-") {
                 let token = result.stdout[range.lowerBound...].prefix { $0 != " " && $0 != ")" && $0 != "\n" }
                 return String(token)
@@ -193,24 +213,24 @@ public enum Oracle {
     /// the caller aborts on loudly, never a parser divergence.
     public static func fetch(
         _ symbols: [String], oracle: String, modes: Modes, timeout: Double,
-    ) -> BatchOutputs? {
+    ) async -> BatchOutputs? {
         let empty = [String](repeating: "", count: symbols.count)
         var tree = empty
         if modes.contains(.tree) {
-            guard let proc = runSubprocess(oracle, ["-tree-only", "-compact"], stdin: sentinelStdinData(symbols), timeoutSeconds: timeout),
+            guard let proc = await runSubprocess(oracle, ["-tree-only", "-compact"], stdin: sentinelStdinData(symbols), timeoutSeconds: timeout),
                   !proc.timedOut,
                   let blocks = splitTreeBlocks(proc.stdout, symbols: symbols)
             else { return nil }
             tree = blocks
         }
-        func mode(_ flag: [String], _ wanted: Bool) -> [String]? {
+        func mode(_ flag: [String], _ wanted: Bool) async -> [String]? {
             guard wanted else { return empty }
-            return lines(symbols, oracle: oracle, flags: flag, timeout: timeout)
+            return await lines(symbols, oracle: oracle, flags: flag, timeout: timeout)
         }
-        guard let compact = mode(["-compact"], modes.contains(.compact)),
-              let simplified = mode(["-simplified"], modes.contains(.simplified)),
-              let noSugar = mode(["-no-sugar"], modes.contains(.noSugar)),
-              let classify = mode(["-classify"], modes.contains(.classify))
+        guard let compact = await mode(["-compact"], modes.contains(.compact)),
+              let simplified = await mode(["-simplified"], modes.contains(.simplified)),
+              let noSugar = await mode(["-no-sugar"], modes.contains(.noSugar)),
+              let classify = await mode(["-classify"], modes.contains(.classify))
         else { return nil }
         return BatchOutputs(tree: tree, compact: compact, simplified: simplified, noSugar: noSugar, classify: classify)
     }
@@ -240,8 +260,8 @@ public enum Oracle {
     /// output line per input symbol (the oracle emits 1:1), or `nil` when
     /// the line count does not match — a misaligned batch must abort, not
     /// silently mis-attribute verdicts.
-    public static func lines(_ symbols: [String], oracle: String, flags: [String], timeout: Double) -> [String]? {
-        guard let proc = runSubprocess(oracle, flags, stdin: stdinData(symbols), timeoutSeconds: timeout),
+    public static func lines(_ symbols: [String], oracle: String, flags: [String], timeout: Double) async -> [String]? {
+        guard let proc = await runSubprocess(oracle, flags, stdin: stdinData(symbols), timeoutSeconds: timeout),
               !proc.timedOut
         else { return nil }
         var lines = proc.stdout.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)

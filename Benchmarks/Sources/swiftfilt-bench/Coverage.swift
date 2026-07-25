@@ -1,22 +1,28 @@
 // Copyright (c) 2026 Roman Zhuzhgov
 // Licensed under the Apache License, Version 2.0
 //
-// The correctness-coverage vector: over the committed fixture stream,
+// The rendering-agreement vector: over the committed fixture stream,
 // what fraction of symbols does each contender (a) resolve at all and
-// (b) resolve BYTE-CORRECTLY against the frozen ground truth — the
+// (b) render BYTE-IDENTICALLY to the frozen ground truth — the
 // fixtures' committed full-style renderings, themselves verified
 // against `swift-demangle` by the repository's parity instrument.
 // Measured, never asserted: every contender's output is byte-compared
-// row by row, and misses split into wrong-output vs declined, with a
-// per-grammar-era breakdown so a stale grammar shows exactly where it
-// is stale.
+// row by row, and differences split into differing-output vs declined,
+// with a per-grammar-era breakdown so a stale grammar shows exactly
+// where it is stale.
+//
+// A difference is NOT automatically a defect, and this vector must not
+// be read as if it were: an engine with no output-format contract (the
+// runtime's, per SE-0498) renders types unsugared and so differs on
+// every sugared type while being perfectly correct. `conventionOnly`
+// below separates those from genuine rendering defects.
 //
 // Ground truth is ALWAYS the committed fixtures (10,845 rows; an
 // external SWIFTFILT_DEMANGLE_CORPUS has no verified rendering column,
 // so the coverage census ignores it). Exactly one fixture row's
 // expectation is the oracle's DECLINE (its column 2 echoes the mangled
 // name — `swift-demangle` echo semantics); that row is excluded from
-// the resolve/byte-correct percentages and reported on its own line,
+// the resolve/agreement percentages and reported on its own line,
 // per contender, so the census never grades "resolving" a row whose
 // verified answer is a refusal.
 
@@ -234,14 +240,14 @@ func censusSubprocess(tool: SubprocessDemangler, groundTruth: [GroundTruthRow], 
     for r in results {
         var line = "  \(r.contender.padding(toLength: 16, withPad: " ", startingAt: 0))"
             + " resolved \(r.resolved)/\(r.rows) (\(String(format: "%.2f", r.resolvedPercent))%)"
-            + " · byte-correct \(r.byteCorrect) (\(String(format: "%.2f", r.byteCorrectPercent))%)"
-            + " · wrong \(r.wrongOutput) · declined \(r.declined)"
+            + " · matches reference \(r.byteCorrect) (\(String(format: "%.2f", r.byteCorrectPercent))%)"
+            + " · differs \(r.wrongOutput) · declined \(r.declined)"
         if r.conventionOnly > 0 {
-            line += " (of the wrong, \(r.conventionOnly) byte-match the tool's --no-sugar rendering — display convention, not misparse)"
+            line += " (of those, \(r.conventionOnly) byte-match the tool's --no-sugar rendering — display convention, not misparse)"
         }
         print(line)
     }
-    print("  per-era byte-correct/total:")
+    print("  per-era reference-matching/total:")
     let contenderWidth = 16
     var header = String(repeating: " ", count: 4 + contenderWidth)
     let eras = eraOrder.filter { era in results.contains { $0.eras[era] != nil } }

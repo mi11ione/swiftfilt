@@ -60,6 +60,24 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+      - name: Select the newest installed Xcode
+        # The oracle must be AT LEAST AS NEW as the committed fixture
+        # corpus. The image default trails it by several releases, and an
+        # older swift-demangle DECLINES manglings the engine handles (Md,
+        # MR, async reabstraction thunks) — each landing as a
+        # `decline/swiftfilt-superset` divergence that reads exactly like
+        # an engine defect. Picked dynamically rather than pinned so this
+        # self-heals as the image gains newer Xcodes; `Xcode_*.app` skips
+        # the unversioned `Xcode.app` symlink, which is the default.
+        run: |
+          newest="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -z "$newest" ]; then
+            echo "::warning::no /Applications/Xcode_*.app on this image — keeping the default toolchain"
+          else
+            sudo xcode-select -s "$newest"
+            echo "selected Xcode: $newest"
+          fi
+          swift --version
       - name: Build parity instrument (release)
         run: swift build -c release --product swiftfilt-parity
       - name: Corpus — committed fixtures, every leg
@@ -76,13 +94,13 @@ jobs:
     # The benchmark regression guard: build the Benchmarks package (its
     # own SwiftPM package — keeps the root dependency-free) and run the
     # smoke against the checked-in baseline. CAVEAT (documented in the
-    # baseline file too): the thresholds are HOST-CLASS-RELATIVE,
-    # recorded on an Apple M4 development machine, and this job is
-    # CI-UNTESTED — on the first run, if the runner's host class
-    # differs enough to breach, re-record `Benchmarks/baseline.json`
-    # from that run's smoke output and keep the tolerance. Failures
-    # after that are real regressions (or a runner hardware change,
-    # which the log's machine block shows).
+    # baseline file too): the thresholds are HOST-CLASS-RELATIVE. The
+    # baseline was recorded on an Apple M4 development machine, breached
+    # on this job's first real run (a 3-core M1 VM is ~2.15x slower), and
+    # has since been re-recorded from that run — so it now belongs to the
+    # hosted runner. Failures are real regressions, or a runner hardware
+    # change, which the log's machine block shows: check it before
+    # assuming a regression, and re-record if the host class moved.
     runs-on: macos-15
     timeout-minutes: 30
     steps:

@@ -6,7 +6,11 @@ import SwiftFiltParityCore
 import Testing
 
 /// The `-remangle-new` stream reconstruction: the reference tool aborts the stdin stream at the first failing row (error to stderr with the symbol name, rows after it unprocessed), so the adjudicator must map the successful prefix, mark the errored row, and resume after it — refusing to guess on any invariant violation. Driven with a stub oracle scripted like the measured tool.
-@Suite("Reference remangler stream reconstruction")
+// Serialized: every test here spawns real subprocesses, and Linux CI runs the
+// suite in parallel (macOS runs it with --no-parallel for the coverage gate).
+// Five concurrent spawn-and-drain loops on a loaded runner made this suite
+// flaky; one at a time costs a few seconds and holds.
+@Suite("Reference remangler stream reconstruction", .serialized)
 struct ReferenceRemangleTests {
     /// A stub oracle: echoes each stdin line prefixed `RM:`, but for any line containing
     /// `FAIL` prints the reference tool's error to stderr and exits — the measured abort behavior.
@@ -28,20 +32,20 @@ struct ReferenceRemangleTests {
         return path
     }
 
-    @Test func cleanBatchMapsOneToOne() throws {
+    @Test func cleanBatchMapsOneToOne() async throws {
         let stub = try makeStubOracle()
         defer { try? FileManager.default.removeItem(atPath: (stub as NSString).deletingLastPathComponent) }
-        let result = referenceRemangle(["$sA", "$sB", "$sC"], oracle: stub, timeout: 30)
+        let result = await referenceRemangle(["$sA", "$sB", "$sC"], oracle: stub, timeout: 30)
         #expect(result != nil)
         #expect(result?.count == 3)
         #expect(result?[0] == "RM:$sA")
         #expect(result?[2] == "RM:$sC")
     }
 
-    @Test func abortAtErrorResumesAfterTheErroredRow() throws {
+    @Test func abortAtErrorResumesAfterTheErroredRow() async throws {
         let stub = try makeStubOracle()
         defer { try? FileManager.default.removeItem(atPath: (stub as NSString).deletingLastPathComponent) }
-        let result = referenceRemangle(["$sA", "FAIL1", "$sB", "FAIL2", "$sC"], oracle: stub, timeout: 30)
+        let result = await referenceRemangle(["$sA", "FAIL1", "$sB", "FAIL2", "$sC"], oracle: stub, timeout: 30)
         #expect(result != nil)
         #expect(result?.count == 5)
         #expect(result?[0] == "RM:$sA")
@@ -51,17 +55,17 @@ struct ReferenceRemangleTests {
         #expect(result?[4] == "RM:$sC")
     }
 
-    @Test func errorOnFirstAndLastRowsReconstructs() throws {
+    @Test func errorOnFirstAndLastRowsReconstructs() async throws {
         let stub = try makeStubOracle()
         defer { try? FileManager.default.removeItem(atPath: (stub as NSString).deletingLastPathComponent) }
-        let result = referenceRemangle(["FAILx", "$sA", "FAILy"], oracle: stub, timeout: 30)
+        let result = await referenceRemangle(["FAILx", "$sA", "FAILy"], oracle: stub, timeout: 30)
         #expect(result != nil)
         #expect(result?[0] == nil)
         #expect(result?[1] == "RM:$sA")
         #expect(result?[2] == nil)
     }
 
-    @Test func misalignedOracleOutputRefusesToGuess() throws {
+    @Test func misalignedOracleOutputRefusesToGuess() async throws {
         // A stub whose stderr names a symbol that is NOT the next
         // unaccounted row: the reconstruction invariant must fail loudly
         // (nil), never misattribute verdicts.
@@ -76,11 +80,11 @@ struct ReferenceRemangleTests {
         try script.write(toFile: path, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: path)
         defer { try? FileManager.default.removeItem(atPath: directory) }
-        #expect(referenceRemangle(["$sA", "$sB"], oracle: path, timeout: 30) == nil)
+        #expect(await referenceRemangle(["$sA", "$sB"], oracle: path, timeout: 30) == nil)
     }
 
-    @Test func unlaunchableOracleReturnsNil() {
-        #expect(referenceRemangle(["$sA"], oracle: "/nonexistent/tool", timeout: 5) == nil)
+    @Test func unlaunchableOracleReturnsNil() async {
+        #expect(await referenceRemangle(["$sA"], oracle: "/nonexistent/tool", timeout: 5) == nil)
     }
 }
 

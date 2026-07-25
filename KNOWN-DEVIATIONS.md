@@ -100,6 +100,16 @@ verbatim reproducer, checkable with `swiftfilt-parity probe <symbol>`.
   decline-leg/byte-fidelity differences on inputs outside any compiler's
   output, not rendering deviations; the entry table stays their judge if
   one ever surfaces on a real symbol.
+- **Bare-type-led `_T` collisions in stream scanning.** A bare nominal-type
+  code after `_T` (`_TS…`/`_TC…`/`_TV…`/`_TO…`) begins a *type*, never a
+  top-level symbol — a type-as-symbol is `_Tt…`, its metadata `_TM…`.
+  `swift-demangle` still partial-demangles the coincidental prefix (`_TSized`
+  → `Swift.Int with unmangled suffix "zed"`), but SwiftFilt's `_T` candidate
+  gate (`isSwiftMangled` / `MangledNameScanner`) declines it and echoes the C
+  name — the never-fabricate policy applied to the `_TK_LOG…` collision class.
+  The demangler called directly still renders these (the demangle legs hold
+  parity — it is the authority there); only the stream scanner declines. 0
+  such names in the 13,074,789-row real-world corpus.
 - **Nesting beyond the construction ceiling** (a deliberate
   deeper-safety guarantee, not a deviation to fix). Below the printer's
   recursion cap (`NodePrinter::MaxDepth`, 768 — restored in 0.5.0) the

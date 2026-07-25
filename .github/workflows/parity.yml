@@ -5,12 +5,20 @@
 # instrument against a live `swift-demangle` — the committed-fixture
 # corpus legs, the selfcheck proof that the gate gates, the live
 # oracle sweep over the fixture set (all seven legs), the roundtrip
-# adjudication, and a totality slice. macOS resolves the oracle
-# through xcrun; Linux Swift toolchains ship swift-demangle in the
-# toolchain's usr/bin (the swift:6.1 container has it on PATH), and
-# the resolve step verifies the located tool actually speaks every
-# flag the legs assume before any sweep runs — a renamed oracle flag
-# fails loudly at the probe, never mid-run or silently.
+# adjudication, and a totality slice. macOS selects the newest Xcode
+# on the image and resolves the oracle through xcrun; Linux Swift
+# toolchains ship swift-demangle in the toolchain's usr/bin (the
+# swift:6.3 container has it on PATH), and the resolve step verifies
+# the located tool actually speaks every flag the legs assume before
+# any sweep runs — a renamed oracle flag fails loudly at the probe,
+# never mid-run or silently.
+#
+# The oracle must be AT LEAST AS NEW as the committed fixture corpus.
+# An older swift-demangle declines manglings the engine handles (Md,
+# MR, async reabstraction thunks), and every one of those lands as a
+# `decline/swiftfilt-superset` divergence — a toolchain-skew artifact
+# that reads exactly like an engine defect. The runner image default
+# trails by several releases, hence the explicit selection below.
 # Known deviations (KNOWN-DEVIATIONS.md) classify; anything
 # unclassified exits non-zero and fails the job.
 
@@ -23,7 +31,7 @@ on:
 permissions:
   contents: read
 
-# Container jobs (swift:6.1) default to sh, which rejects `set -o pipefail`.
+# Container jobs (swift:6.3) default to sh, which rejects `set -o pipefail`.
 defaults:
   run:
     shell: bash
@@ -44,7 +52,7 @@ jobs:
             container: ""
           - os: ubuntu-24.04
             label: Linux, toolchain oracle
-            container: swift:6.1
+            container: swift:6.3
     runs-on: ${{ matrix.os }}
     # An empty container string means "run on the host" (the documented
     # GitHub Actions behavior for expression-valued `container:`).
@@ -52,6 +60,21 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
+      - name: Select the newest installed Xcode
+        # macOS only; the Linux leg's oracle is the container toolchain's.
+        # Picked dynamically rather than pinned so this self-heals as the
+        # runner image gains newer Xcodes. `Xcode_*.app` deliberately skips
+        # the unversioned `Xcode.app` symlink, which points at the default.
+        if: runner.os == 'macOS'
+        run: |
+          newest="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -z "$newest" ]; then
+            echo "::warning::no /Applications/Xcode_*.app on this image — keeping the default toolchain"
+          else
+            sudo xcode-select -s "$newest"
+            echo "selected Xcode: $newest"
+          fi
+          swift --version
       - name: Resolve and verify the oracle
         # Location fallback chain: PATH → next to swiftc → xcrun. Then
         # verify every flag the legs assume (-compact, -simplified,

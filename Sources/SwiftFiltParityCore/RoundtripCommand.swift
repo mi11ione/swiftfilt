@@ -77,8 +77,8 @@ public func runRoundtripCommand(_ args: [String]) async -> Int32 {
     guard let source = SymbolSource.resolve(for: "roundtrip") else { return 2 }
     let catalogue = DeviationCatalogue.load()
     var report = RunReport(instrument: tag.map { "roundtrip-\($0)" } ?? "roundtrip", catalogue: catalogue)
-    let oracle = oracleOverride ?? Oracle.locate()
-    let oracleIdentity = oracle.map { "\($0) [\(Oracle.identity($0))]" }
+    let oracle = if let oracleOverride { oracleOverride } else { await Oracle.locate() }
+    let oracleIdentity: String? = if let oracle { await "\(oracle) [\(Oracle.identity(oracle))]" } else { nil }
     report.note("symbols: \(source.descriptionLine)\(skip == 0 ? "" : " skip=\(grouped(skip))")\(limit == .max ? "" : " limit=\(grouped(limit))")")
     if oracle == nil {
         report.note("oracle: NONE — non-identity conversions gate as conversion-unadjudicated")
@@ -164,14 +164,14 @@ public func runRoundtripCommand(_ args: [String]) async -> Int32 {
         while start < candidates.count {
             let chunk = Array(candidates[start ..< min(start + adjudicationChunk, candidates.count)])
             start += chunk.count
-            guard let verdicts = referenceRemangle(chunk.map(\.mangled), oracle: oracle, timeout: timeout) else {
+            guard let verdicts = await referenceRemangle(chunk.map(\.mangled), oracle: oracle, timeout: timeout) else {
                 report.recordHarnessError("swift-demangle -remangle-new adjudication failed for a \(chunk.count)-row chunk starting \(chunk.first?.mangled ?? "")")
                 continue
             }
             // The decline reference: which of these can the oracle demangle
             // at all (an echo from -remangle-new is only an identity
             // remangling when the oracle actually demangles the symbol).
-            guard let compactLines = Oracle.lines(chunk.map(\.mangled), oracle: oracle, flags: ["-compact"], timeout: timeout) else {
+            guard let compactLines = await Oracle.lines(chunk.map(\.mangled), oracle: oracle, flags: ["-compact"], timeout: timeout) else {
                 report.recordHarnessError("swift-demangle -compact adjudication failed for a \(chunk.count)-row chunk starting \(chunk.first?.mangled ?? "")")
                 continue
             }
@@ -268,13 +268,13 @@ private func finishRoundtrip(
 /// input (nil = the reference errored on that row), or nil for an
 /// unreconstructable invocation (timeout, invariant violation) — the
 /// caller records a loud harness error, never a guess.
-public func referenceRemangle(_ symbols: [String], oracle: String, timeout: Double) -> [String?]? {
+public func referenceRemangle(_ symbols: [String], oracle: String, timeout: Double) async -> [String?]? {
     var results: [String?] = []
     results.reserveCapacity(symbols.count)
     var remaining = symbols[...]
     while !remaining.isEmpty {
         let stdin = Data((remaining.joined(separator: "\n") + "\n").utf8)
-        guard let proc = runSubprocess(oracle, ["-remangle-new"], stdin: stdin, timeoutSeconds: timeout),
+        guard let proc = await runSubprocess(oracle, ["-remangle-new"], stdin: stdin, timeoutSeconds: timeout),
               !proc.timedOut
         else { return nil }
         var stdoutLines = proc.stdout.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)

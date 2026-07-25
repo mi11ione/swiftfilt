@@ -6,7 +6,7 @@ swiftfilt against every incumbent way to demangle Swift symbols, on identical in
 
 Apple M4, macOS 27, Swift 6.4, release, foreground; medians of 5 runs on the committed 10,845-symbol real-world fixture stream. Winner bold per column — including where it is not swiftfilt.
 
-| contender | 1-symbol latency | batch throughput | CPU/symbol | allocs/symbol | byte-correct |
+| contender | 1-symbol latency | batch throughput | CPU/symbol | allocs/symbol | matches `swift-demangle` |
 |---|---|---|---|---|---|
 | **swiftfilt** one-shot | 371 ns | 723k sym/s | 1,383 ns | 14.1 | **100.00%** |
 | **swiftfilt** session | 325 ns | 819k sym/s | 1,222 ns | 8.0 | **100.00%** |
@@ -34,7 +34,7 @@ In one look: the dlsym hook is the fastest raw string→string engine per call, 
 
 Ground truth is the committed fixtures' full-style renderings — 10,844 verified rows (plus one whose verified expectation is the oracle's *decline*, below), earned against `xcrun swift-demangle` by the repository's parity instrument. Every contender ran every row; outputs byte-compared. `coverage` mode reproduces this.
 
-| contender | resolves | byte-correct | wrong | declined |
+| contender | resolves | matches reference | differs | declined |
 |---|---|---|---|---|
 | **swiftfilt** | **10,844/10,844** | **10,844 (100.00%)** | 0 | 0 |
 | `swift-demangle` (args mode) | **10,844/10,844** | **10,844 (100.00%)** | 0 | 0 |
@@ -42,7 +42,7 @@ Ground truth is the committed fixtures' full-style renderings — 10,844 verifie
 | CwlDemangle | 10,422 (96.11%) | 10,226 (94.30%) | 196 | 422 |
 | `Runtime.demangle` | **10,844/10,844** | 8,833 (81.46%) | 2,011 | 0 |
 
-Per grammar era, byte-correct/total:
+Per grammar era, reference-matching/total:
 
 | contender | stable `$s` | swift4 `_T0` | legacy `_T` | objc `_Tt` | macro | embedded `$e` |
 |---|---|---|---|---|---|---|
@@ -52,9 +52,9 @@ Per grammar era, byte-correct/total:
 | CwlDemangle | 9,703/10,290 | 79/81 | 251/256 | 187/210 | **6/6** | 0/1 |
 | `Runtime.demangle` | 8,330/10,290 | 61/81 | 236/256 | 199/210 | **6/6** | **1/1** |
 
-What the misses are, split by a second oracle (each tool's own `--no-sugar` rendering):
+What the differences are, split by a second oracle (each tool's own `--no-sugar` rendering):
 
-- **dlsym / `Runtime.demangle`:** all 2,011 misses byte-match `swift-demangle --no-sugar` exactly — the runtime engine renders types unsugared (`Swift.Optional<T>` where the tool prints `T?`). Zero misparses; the 81.46% is the measured face of "no output-format contract" — correct demanglings in a convention that isn't the reference rendering and may change with the runtime.
+- **dlsym / `Runtime.demangle`:** all 2,011 misses byte-match `swift-demangle --no-sugar` exactly — the runtime engine renders types unsugared (`Swift.Optional<T>` where the tool prints `T?`). Zero misparses. The 81.46% measures distance from the reference rendering, not correctness: these are correct demanglings in a convention that isn't `swift-demangle`'s — the measured face of "no output-format contract", which SE-0498 states outright ("may change without any warning, during even patch releases of Swift").
 - **CwlDemangle** (at its best configuration): 422 declines are grammar the 2025 port doesn't speak (`Md`/`MR` kinds, newer outlined-value variants, embedded `$e`); 196 wrong outputs are real rendering defects, none of them the sugar convention — e.g. a literal `first-element-marker ` leaking into output, a stray trailing `_`. Fast-but-stale is the vendored-copy trade, measured.
 - The one **expected-decline row** (`$s4main3fooyyF3fooSiTf0pk_n`, a constant-prop payload with missing operands): `swift-demangle` declines it; swiftfilt, dlsym, CwlDemangle, and `Runtime.demangle` all resolve a lenient superset. For swiftfilt that's catalogued with evidence in [`KNOWN-DEVIATIONS.md`](../KNOWN-DEVIATIONS.md) (`constprop-degenerate-superset`); the other three catalogued deviations live in legs this vector doesn't traverse. All four are fixture-corner cases with zero hits in the 13,074,789-symbol real-world sweep.
 

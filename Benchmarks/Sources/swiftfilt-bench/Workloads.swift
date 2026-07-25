@@ -366,7 +366,7 @@ struct SubprocessDemangler {
 struct RuntimeHookDemangler {
     typealias Fn = @convention(c) (
         UnsafePointer<CChar>?, Int,
-        UnsafeMutablePointer<CChar>?, UnsafeMutablePointer<Int>?, UInt32,
+        UnsafeMutablePointer<CChar>?, UnsafeMutablePointer<Int>?, UInt32
     ) -> UnsafeMutablePointer<CChar>?
 
     let fn: Fn

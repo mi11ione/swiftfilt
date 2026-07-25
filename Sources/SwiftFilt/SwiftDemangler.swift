@@ -54,28 +54,34 @@ public typealias SymbolicReferenceResolver =
 public struct SwiftDemangler: Sendable {
     public init() {}
 
-    /// Every character that can follow the legacy `_T` prefix and begin a
-    /// parseable production — the `_T` operator gate, derived from
+    /// Every character that can begin a top-level old-mangling *symbol* after
+    /// the legacy `_T` prefix — the `_T` operator gate, derived from
     /// ``OldDemangler``'s top-level dispatch (`demangleTopLevelOld` →
-    /// `demangleGlobal` → `demangleEntity` → `demangleNominalType`):
-    /// `T` attribute/thunk prefixes (`_TT{S,o,O,D,d,V,R,r,W}…`), `M` type
-    /// metadata, `w` value witnesses, `W` witness tables and field offsets,
-    /// `t` type manglings (the ObjC-metadata `_Tt…` names), `P` partial-apply
-    /// forwarders (`_TPA…`) and protocol declarations, `Z`/`F`/`v`/`I`/`i`
-    /// entities (static, function, variable, initializer, subscript), and
-    /// `S`/`V`/`O`/`C` nominal types (stdlib and module substitutions,
-    /// struct, enum, class) — plus `0`, which is not an old operator but the
-    /// Swift-4.0 `_T0` new-mangling prefix sharing the `_T` lead. No other
-    /// character starts a parse (each excluded char dead-ends in that
-    /// dispatch; cross-checked against `swift-demangle` and by exhaustive
-    /// first-char sweep), and every included one has demangling witnesses.
-    /// The old grammar keeps unparsed trailing text as a suffix, so even
-    /// C-looking names like `_TSized` genuinely demangle (`Swift.Int with
-    /// unmangled suffix "zed"`, exactly as `swift-demangle` prints it) —
-    /// the demangler, not this set, is the authority. Single source of
-    /// truth: ``MangledNameScanner``'s `_T` candidate gate consumes it too.
+    /// `demangleGlobal` → `demangleEntity`): the global operators `M` (type
+    /// metadata), `w` (value witnesses), `W` (witness tables and field
+    /// offsets), `t` (type manglings, the ObjC-metadata `_Tt…` names), `T`
+    /// (attribute/thunk prefixes `_TT{S,o,O,D,d,V,R,r,W}…`) and `P`
+    /// (partial-apply forwarders `_TPA…` and protocol declarations); the entity
+    /// kinds `Z`/`F`/`v`/`I`/`i` (static, function, variable, initializer,
+    /// subscript); and `0`, the Swift-4.0 `_T0` new-mangling prefix sharing the
+    /// `_T` lead.
+    ///
+    /// The bare nominal-type / substitution codes `S`/`V`/`O`/`C` are
+    /// deliberately EXCLUDED: they begin a *type*, never a top-level symbol — a
+    /// type-as-symbol is mangled `_Tt…`, its metadata `_TM…`, never a bare
+    /// `_TC…`/`_TS…`. `swift-demangle` still partial-demangles them (`_TSized` →
+    /// `Swift.Int with unmangled suffix "zed"`), but that is a coincidental
+    /// prefix match on an ordinary C symbol (the `_TK_LOG…` collision class),
+    /// and treating it as Swift is exactly the fabrication SwiftFilt's scanner
+    /// refuses. The demangler, called directly, still renders these (parity
+    /// holds on the demangle legs — it is the authority there); this gate only
+    /// keeps the scanner from lifting such C names out of a text stream.
+    /// Verified: `S V O C` dead-end at a bare nominal type while every included
+    /// char begins a real entity/global, cross-checked against `swift-demangle`
+    /// and an exhaustive first-char sweep. Single source of truth:
+    /// ``MangledNameScanner``'s `_T` candidate gate consumes it too.
     @usableFromInline
-    static let oldManglingOperators = "0CFIMOPSTVWZitvw"
+    static let oldManglingOperators = "0FIMPTWZitvw"
 
     /// Whether `name` looks like a Swift mangled symbol — a fast prefix-only
     /// pre-filter (apple/swift's `isSwiftSymbol`) so consumers (e.g. a caller

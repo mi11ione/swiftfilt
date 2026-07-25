@@ -398,9 +398,10 @@ public struct MangledNameScanner: Sendable {
 
     /// Old-mangling top-level operators — the same grammar-derived set the
     /// ``SwiftDemangler/isSwiftMangled(_:)`` gate applies after `_T` (single
-    /// source of truth), keeping `_TK_LOGGING`-style C names from ever
-    /// reaching the demangler while every demangleable `_T…` form starts a
-    /// candidate. Validation still decides.
+    /// source of truth), keeping `_TK_LOGGING`-style C names — and bare
+    /// nominal-type-led collisions (`_TS…`/`_TC…`, which begin a type, not a
+    /// symbol) — from ever being lifted from a stream, while every `_T…` form
+    /// that begins a top-level symbol starts a candidate. Validation still decides.
     private static let oldManglingOperators = Set(SwiftDemangler.oldManglingOperators.utf8)
 
     /// The length of the mangling prefix starting at `index`, or 0. The

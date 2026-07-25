@@ -124,7 +124,7 @@ swiftfilt census --json < LinkMap.txt | jq -es 'map(select(.table=="kinds" and (
 A zero-dependency library — no imports, not even Foundation, so it builds anywhere Swift compiles (macOS, Linux, Windows, Android, on-device iOS; CI builds the library on all four):
 
 ```swift
-dependencies: [.package(url: "https://github.com/mi11ione/swiftfilt", from: "0.9.0")]
+dependencies: [.package(url: "https://github.com/mi11ione/swiftfilt", from: "1.0.1")]
 ```
 
 ```swift
@@ -178,9 +178,9 @@ Correctness is defined by external oracles, never asserted from inside. The engi
 
 ## Performance
 
-Measured against every incumbent way to demangle Swift symbols — same inputs, one harness, each at its best configuration. Apple M4, 10,845-symbol real-world stream, winner bold per column including where it isn't swiftfilt. Full card (CPU, memory, per-era correctness, methodology) in [`Benchmarks/README.md`](Benchmarks/README.md).
+Measured against every incumbent way to demangle Swift symbols — same inputs, one harness, each at its best configuration. Apple M4, 10,845-symbol real-world stream, winner bold per column including where it isn't swiftfilt. Full card (CPU, memory, per-era rendering agreement, methodology) in [`Benchmarks/README.md`](Benchmarks/README.md).
 
-| contender | 1-symbol latency | batch throughput | byte-correct |
+| contender | 1-symbol latency | batch throughput | matches `swift-demangle` |
 |---|---|---|---|
 | **swiftfilt** one-shot | 371 ns | 723k sym/s | **100.00%** |
 | **swiftfilt** session | 325 ns | 819k sym/s | **100.00%** |
@@ -189,7 +189,7 @@ Measured against every incumbent way to demangle Swift symbols — same inputs, 
 | CwlDemangle | 1,255 ns | 149k sym/s | 94.30% |
 | `Runtime.demangle` (SE-0498) | 294 ns | 1,157k sym/s | 81.46% |
 
-The dlsym hook wins raw per-call speed — swiftfilt holds it to 1.6× (session) / 1.8× (one-shot) — but gives no structure, styles, old-grammar guarantee, or output-stability contract (its 81.46% is that absence, measured), and exists only inside a Swift process. swiftfilt is the only in-process contender at 100% byte-correct, with an exact allocation budget: **6 allocations** per one-shot demangle, **2** through a warm session. Text filtering a 64 MiB log: the parallel CLI rewrites it in **0.11 s** (12× `swift-demangle`'s own filter), byte-identical and in order.
+The dlsym hook wins raw per-call speed — swiftfilt holds it to 1.6× (session) / 1.8× (one-shot) — but gives no structure, styles, old-grammar guarantee, or output-stability contract, and exists only inside a Swift process. Its 81.46% is not wrongness: every miss is a correct demangling in the runtime's own unsugared convention (`Swift.Optional<Int>` where the reference prints `Int?`) — the measured face of having no output-format contract. swiftfilt is the only in-process contender that reproduces the reference rendering byte-for-byte, with an exact allocation budget: **6 allocations** per one-shot demangle, **2** through a warm session. Text filtering a 64 MiB log: the parallel CLI rewrites it in **0.11 s** (12× `swift-demangle`'s own filter), byte-identical and in order.
 
 ## Scope
 

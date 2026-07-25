@@ -122,7 +122,7 @@ func peakRSSBytes() -> UInt64 {
     /// is `arg2` (malloc/calloc/valloc: type = alloc|zone) or `arg3`
     /// (realloc: type = alloc|dealloc|zone, arg2 = old pointer).
     private typealias MallocLoggerFn = @convention(c) (
-        UInt32, UInt, UInt, UInt, UInt, UInt32,
+        UInt32, UInt, UInt, UInt, UInt, UInt32
     ) -> Void
 
     /// The exported `malloc_logger` global — libmalloc calls whatever

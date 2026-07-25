@@ -15,13 +15,13 @@ public func runProbeCommand(_ args: [String]) async -> Int32 {
         eprint("probe: pass one or more mangled symbols")
         return 2
     }
-    let oracle = Oracle.locate()
+    let oracle = await Oracle.locate()
     if let oracle {
-        print("[probe] oracle: \(oracle) [\(Oracle.identity(oracle))]")
+        await print("[probe] oracle: \(oracle) [\(Oracle.identity(oracle))]")
     } else {
         print("[probe] oracle: NONE (engine side only)")
     }
-    let oracleOutputs = oracle.flatMap { Oracle.fetch(args, oracle: $0, modes: .all, timeout: 120) }
+    let oracleOutputs: Oracle.BatchOutputs? = if let oracle { await Oracle.fetch(args, oracle: oracle, modes: .all, timeout: 120) } else { nil }
     if oracle != nil, oracleOutputs == nil {
         eprint("probe: oracle invocation failed")
         return 2

@@ -443,7 +443,7 @@ if wants("compare") {
         resolvedByCwl = resolved
         return Double(batch.count) / seconds
     })
-    progress("  CwlDemangle resolved \(resolvedByCwl)/\(batch.count) (byte-correctness is the coverage census's job)")
+    progress("  CwlDemangle resolved \(resolvedByCwl)/\(batch.count) (rendering agreement is the coverage census's job)")
 
     if let reason = RuntimeAPIContender.unavailableReason {
         progress("  compare-runtime SKIPPED: \(reason)")

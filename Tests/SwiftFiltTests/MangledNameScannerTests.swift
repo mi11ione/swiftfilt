@@ -56,16 +56,16 @@ struct MangledNameScannerTests {
             == "old main.foo() -> () and class test.Foo here")
         #expect(demangleAll(in: "swift4 $S4main3fooyyF embedded $e4main3fooyyF")
             == "swift4 main.foo() -> () embedded main.foo() -> ()")
-        // Legacy subscript entities (`_Ti…`) and stdlib-substitution forms
-        // (`_TS…`) are found through the same grammar-exact operator set the
-        // engine pre-filter uses — byte-identical to `swift-demangle`'s
-        // stream output for these lines (the legacy grammar keeps unparsed
-        // trailing text as a suffix, so `_TSized` genuinely demangles while
-        // `_TABLE_SIZE` and `_ToC4main3Foo` never start a candidate).
+        // Legacy subscript entities (`_Ti…`) are found through the
+        // grammar-exact operator set the engine pre-filter uses. Bare
+        // nominal-type codes (`_TS…`/`_TC…`) are NOT candidates — they begin a
+        // type, never a symbol, so a `_TSized`-style C collision stays
+        // untouched (SwiftFilt's never-fabricate gate), alongside `_TABLE_SIZE`
+        // and `_ToC4main3Foo`, which never start a candidate either.
         #expect(demangleAll(in: "crash in _TiC4Meow5MyCls9subscriptFT1iSi_Sf here")
             == "crash in Meow.MyCls.subscript(i: Swift.Int) -> Swift.Float here")
         #expect(demangleAll(in: "then _TSized there, but _TABLE_SIZE and _ToC4main3Foo stay")
-            == "then Swift.Int with unmangled suffix \"zed\" there, but _TABLE_SIZE and _ToC4main3Foo stay")
+            == "then _TSized there, but _TABLE_SIZE and _ToC4main3Foo stay")
         // A macro-expansion buffer name in a diagnostics path: the `.swift`
         // extension joins the symbol as an unmangled suffix — byte-identical
         // to `swift-demangle`'s stream output for the same line (the

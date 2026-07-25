@@ -75,10 +75,11 @@ struct DemangleEntryPointTests {
     @Test(arguments: [
         "hello", "_ZN4llvm3fooEv", "__ZTVN3fooE", "_TK_LOGGING", "", " ",
         "printf", "0x0000000100003f50", "_main",
-        // `_T` + a char with no old-grammar production: nothing starting
-        // this way can demangle, so the honest verdict is "not Swift" —
-        // hand these C names to the next demangler, don't call them corrupt.
-        "_ToggleFlag", "_TableSize", "_TfooHelper",
+        // `_T` + a char that starts no top-level symbol: a dead operator
+        // (`o a f`: no old-grammar production) or a bare nominal-type code
+        // (`S`: begins a type, not a symbol). The honest verdict is "not
+        // Swift" — hand these C names to the next demangler, not corrupt.
+        "_ToggleFlag", "_TableSize", "_TfooHelper", "_TS",
     ])
     func nonSwiftNamesReturnNilAndThrowNotSwiftMangled(_ name: String) {
         #expect(demangle(name) == nil)
@@ -93,7 +94,7 @@ struct DemangleEntryPointTests {
         // `_T` + a recognized operator that then fails the parse — the
         // DemangleError.malformed doc's "`_T…` C symbol that slipped past
         // prefix heuristics" case (`i` is the legacy subscript operator).
-        "_TimerCallback", "_Ti", "_TS",
+        "_TimerCallback", "_Ti",
     ])
     func swiftPrefixedGarbageReturnsNilAndThrowsMalformed(_ name: String) {
         #expect(demangle(name) == nil)
@@ -122,24 +123,26 @@ struct DemangleEntryPointTests {
     @Test func isSwiftMangledAcceptsEveryFixtureSymbol() throws {
         let corpus = try SwiftDemanglerCorpusParity.loadRows()
         #expect(corpus.allSatisfy { isSwiftMangled($0.mangled) })
-        // Pre-filter soundness over the legacy fixtures: the `_T` operator
-        // gate is grammar-exact (it once under-approximated `_Ti…`
-        // subscripts and `_TS…` substitutions), so everything that
-        // demangles passes the pre-filter — no carve-outs.
+        // Pre-filter soundness over the legacy fixtures: every fixture symbol
+        // is a real entity/global start, so all pass the grammar-exact `_T`
+        // gate. The gate is intentionally stricter than the demangler on bare
+        // nominal-type codes (`_TS…`/`_TC…` — a type, not a symbol), but no
+        // such collision appears in the curated fixtures.
         let legacy = try FixtureRows.legacy()
         let rejected = legacy.filter { !isSwiftMangled($0.mangled) }
         #expect(rejected.isEmpty, "pre-filter rejected demangleable fixtures: \(rejected.map(\.mangled))")
     }
 
-    /// The task the old gate failed: a legacy subscript entity passes the
-    /// pre-filter AND demangles — the pre-filter never contradicts the
-    /// demangler (soundness, proven corpus-wide by the revalidation run).
-    @Test func legacySubscriptSymbolPassesPreFilterAndDemangles() {
+    /// The pre-filter is intentionally STRICTER than the mechanical demangler
+    /// on the ambiguous `_T` lead. A real entity (a legacy subscript) passes
+    /// both. A bare nominal-type code passes the demangler — which renders the
+    /// bare type — but the pre-filter rejects it: a type is not a top-level
+    /// symbol, so the scanner must not lift such `_TK_LOG`-class C collisions.
+    @Test func preFilterRejectsBareTypeCollisionsTheDemanglerStillRenders() {
         let sym = "_TiC4Meow5MyCls9subscriptFT1iSi_Sf"
         #expect(isSwiftMangled(sym))
         #expect(demangle(sym) == "Meow.MyCls.subscript(i: Swift.Int) -> Swift.Float")
-        // Same for the legacy stdlib-substitution forms the old gate missed.
-        #expect(isSwiftMangled("_TSa"))
+        #expect(!isSwiftMangled("_TSa"))
         #expect(demangle("_TSa") == "Swift.Array")
     }
 

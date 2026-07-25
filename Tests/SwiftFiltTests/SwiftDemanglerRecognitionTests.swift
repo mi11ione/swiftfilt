@@ -18,20 +18,15 @@ struct SwiftDemanglerRecognitionTests {
 
     @Test func recognizesLegacyTPrefixWithKnownOperator() {
         // One demangling witness per character in the grammar-derived
-        // operator set `0CFIMOPSTVWZitvw` (every char that can start an
-        // old-mangling production after `_T`) — each of these also
-        // demangles, so rejecting any would break pre-filter soundness.
+        // symbol-start set `0FIMPTWZitvw` (every char that can begin a
+        // top-level old-mangling symbol after `_T`).
         for name in ["_T04main3fooyyF", // 0: Swift-4.0 new mangling
-                     "_TC4main3Baz", // C: class
                      "_TF4main3fooFT_T_", // F: function
                      "_TIF4main3fooFT1xSi_T_A_", // I: default argument
                      "_TMaSi", // M: metadata access
-                     "_TO4main3Bar", // O: enum
                      "_TPA__TTRXFo_dSi_dSi_XFo_iSi_iSi_", // P: partial apply
                      "_TP4main5Proto", // P: protocol declaration
-                     "_TSa", // S: stdlib substitution
                      "_TTRXFo_dSi_dSi_XFo_iSi_iSi_", // T: thunk
-                     "_TV4main3Foo", // V: struct
                      "_TWVV4main3Foo", // W: value witness table
                      "_TZF4main3fooFT_T_", // Z: static entity
                      "_TiC4Meow5MyCls9subscriptFT1iSi_Sf", // i: subscript
@@ -41,6 +36,12 @@ struct SwiftDemanglerRecognitionTests {
                      "_TFC4main3Foo3barfT_T_"] // F again: method
         {
             #expect(SwiftDemangler.isSwiftMangled(name), "expected recognized: \(name)")
+        }
+    }
+
+    @Test func rejectsLegacyTPrefixWithBareNominalTypeCode() {
+        for name in ["_TSized", "_TSa", "_TC4main3Baz", "_TV4main3Foo", "_TO4main3Bar"] {
+            #expect(!SwiftDemangler.isSwiftMangled(name), "expected rejected: \(name)")
         }
     }
 

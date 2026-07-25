@@ -87,11 +87,11 @@ public func runLiveCommand(_ args: [String]) async -> Int32 {
         return 2
     }
     guard let source = SymbolSource.resolve(for: "live") else { return 2 }
-    guard let oracle = oracleOverride ?? Oracle.locate() else {
+    guard let oracle = if let oracleOverride { oracleOverride } else { await Oracle.locate() } else {
         eprint("live: swift-demangle not found (install an Xcode toolchain or pass --oracle PATH)")
         return 2
     }
-    let oracleIdentity = "\(oracle) [\(Oracle.identity(oracle))]"
+    let oracleIdentity = await "\(oracle) [\(Oracle.identity(oracle))]"
     let catalogue = DeviationCatalogue.load()
     var report = RunReport(instrument: tag.map { "live-\($0)" } ?? "live", catalogue: catalogue)
     report.note("symbols: \(source.descriptionLine)\(skip == 0 ? "" : " skip=\(grouped(skip))")\(limit == .max ? "" : " limit=\(grouped(limit))")")
@@ -289,7 +289,7 @@ private func sweep(
 /// against the engine, on a large-stack worker (deep corpus symbols nest
 /// past the cooperative pool's stack).
 private func diffBatch(_ symbols: [String], index: Int, oracle: String, legs: LiveLegs, timeout: Double) async -> BatchOutcome {
-    guard let outputs = Oracle.fetch(symbols, oracle: oracle, modes: legs.oracleModes, timeout: timeout) else {
+    guard let outputs = await Oracle.fetch(symbols, oracle: oracle, modes: legs.oracleModes, timeout: timeout) else {
         // A whole-batch oracle failure (timeout/misalignment/launch) is a
         // harness problem: abort scoring loudly, never mis-attribute it.
         var outcome = BatchOutcome(index: index, count: symbols.count)

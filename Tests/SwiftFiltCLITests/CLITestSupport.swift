@@ -167,6 +167,8 @@ func runTool(_ toolPath: String, _ arguments: [String], stdin: [UInt8]) throws -
     try? inPipe.fileHandleForWriting.close()
 
     process.waitUntilExit()
-    while !reader.isFinished { usleep(1000) }
+    while !reader.isFinished {
+        usleep(1000)
+    }
     return (process.terminationStatus, [UInt8](drained.bytes))
 }

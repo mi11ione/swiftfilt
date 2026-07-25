@@ -175,6 +175,82 @@ public enum Oracle {
         return "swift-demangle (version unknown)"
     }
 
+    /// The oracle release this repository's fixtures and KNOWN-DEVIATIONS
+    /// evidence were recorded against.
+    ///
+    /// It exists because the print and tree legs compare RENDERING STRINGS
+    /// and NODE KINDS, and upstream renames both between releases —
+    /// measured across 6.2.4 → 6.4: `predefined @objc completion handler
+    /// block implementation` became `checked …`, and the
+    /// `FunctionSignatureSpecializationParamPayload` node kind became
+    /// `Identifier`. Neither is an engine defect, but both read exactly
+    /// like one in a divergence row, so an oracle below this floor cannot
+    /// be gated on: it would fail the run for another toolchain's spelling.
+    ///
+    /// Only MAJOR.MINOR is compared; patch releases do not rename nodes.
+    /// Raise this when the fixtures are re-recorded against a newer oracle.
+    public static let referenceVersion = (major: 6, minor: 4)
+
+    /// The leading `MAJOR.MINOR` in an identity token, covering both forms
+    /// `identity(_:)` can return: Apple's `swiftlang-6.4.0.27.1` and a
+    /// swift.org build's `Swift version 6.3.3 (swift-6.3.3-RELEASE)`.
+    /// Pass the RAW identity token, never a composed line that also carries
+    /// the tool path: an `/Applications/Xcode_26.3.app/…` prefix would parse
+    /// as version 26.3 and defeat the comparison.
+    public static func version(of identity: String) -> (major: Int, minor: Int)? {
+        let characters = Array(identity)
+        var index = 0
+        while index < characters.count {
+            guard characters[index].isNumber else {
+                index += 1
+                continue
+            }
+            var cursor = index
+            var major = ""
+            while cursor < characters.count, characters[cursor].isNumber {
+                major.append(characters[cursor])
+                cursor += 1
+            }
+            guard cursor < characters.count, characters[cursor] == "." else {
+                index = cursor
+                continue
+            }
+            cursor += 1
+            var minor = ""
+            while cursor < characters.count, characters[cursor].isNumber {
+                minor.append(characters[cursor])
+                cursor += 1
+            }
+            if !minor.isEmpty, let major = Int(major), let minor = Int(minor) {
+                return (major, minor)
+            }
+            index = cursor
+        }
+        return nil
+    }
+
+    /// Non-nil when `identity` names an oracle the rendering-sensitive legs
+    /// must NOT gate on — older than ``referenceVersion``, or one whose
+    /// version cannot be read at all. The string is the reason, carried
+    /// into the run summary verbatim so an advisory run is never silent.
+    public static func belowReference(_ identity: String) -> String? {
+        let reference = "swiftlang-\(referenceVersion.major).\(referenceVersion.minor)"
+        guard let found = version(of: identity) else {
+            return """
+            oracle version unreadable from `\(identity)` — cannot confirm it matches the reference \
+            (\(reference)) the fixtures and KNOWN-DEVIATIONS evidence were recorded against, \
+            so the oracled legs are ADVISORY on this run (reported in full, not gating)
+            """
+        }
+        guard (found.major, found.minor) < (referenceVersion.major, referenceVersion.minor) else { return nil }
+        return """
+        oracle is \(found.major).\(found.minor), BELOW the reference \(reference) the fixtures and \
+        KNOWN-DEVIATIONS evidence were recorded against — upstream renames rendering strings and node \
+        kinds between releases, so divergences here are toolchain skew rather than engine defects: \
+        the oracled legs are ADVISORY on this run (reported in full, not gating)
+        """
+    }
+
     /// The five oracle output modes the live legs diff against, one entry
     /// per input symbol in batch order. Empty entries mean the oracle
     /// produced no output for that slot.

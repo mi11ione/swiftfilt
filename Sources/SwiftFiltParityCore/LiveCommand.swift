@@ -91,9 +91,13 @@ public func runLiveCommand(_ args: [String]) async -> Int32 {
         eprint("live: swift-demangle not found (install an Xcode toolchain or pass --oracle PATH)")
         return 2
     }
-    let oracleIdentity = await "\(oracle) [\(Oracle.identity(oracle))]"
+    // Keep the raw token: `oracleIdentity` also carries the tool PATH, and
+    // an /Applications/Xcode_26.3.app/… prefix parses as version 26.3.
+    let oracleVersionToken = await Oracle.identity(oracle)
+    let oracleIdentity = "\(oracle) [\(oracleVersionToken)]"
     let catalogue = DeviationCatalogue.load()
     var report = RunReport(instrument: tag.map { "live-\($0)" } ?? "live", catalogue: catalogue)
+    report.advisoryReason = Oracle.belowReference(oracleVersionToken)
     report.note("symbols: \(source.descriptionLine)\(skip == 0 ? "" : " skip=\(grouped(skip))")\(limit == .max ? "" : " limit=\(grouped(limit))")")
     report.note("legs: \(legs.names.joined(separator: ",")) (unqualified is exercised, not oracled — no swift-demangle mode exists for it)")
     report.note("batch=\(grouped(batchSize)) jobs=\(jobs) timeout=\(Int(timeout))s")

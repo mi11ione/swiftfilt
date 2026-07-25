@@ -143,3 +143,33 @@ Xcode-beta.app 26 (`xcrun -f swift-demangle`), LLVM 21.0.0.
 apple/swift `main` source citations retrieved 2026-07-16; depth-policy
 sweeps and decline-leg evidence re-verified against the same oracle
 2026-07-24.
+
+## The oracle version floor
+
+Every entry above is evidence recorded against that oracle, and the
+print and tree legs compare RENDERING STRINGS and NODE KINDS — both of
+which upstream renames between releases. Measured across 6.2.4 → 6.4:
+`predefined @objc completion handler block implementation for …` became
+`checked …`, and the `FunctionSignatureSpecializationParamPayload` node
+kind became `Identifier`. Neither is an engine defect, but each shows up
+as a divergence row indistinguishable from one.
+
+So `Oracle.referenceVersion` (Oracle.swift) declares the floor, and a
+live oracle BELOW it makes the oracled legs **advisory**: every
+divergence is still counted, classified, listed, and written to the
+gating TSV, but the run exits 0 and says why in the summary. Harness
+errors — an unlaunchable or timing-out oracle — gate regardless, since
+no toolchain skew explains those. At or above the floor nothing softens
+and the legs gate exactly as before; `swiftfilt-parity selfcheck` proves
+both directions, and the advisory path is pinned by
+`OracleReferenceVersionTests`.
+
+This exists because the newest publicly installable `swift-demangle` is
+behind the toolchain this file was recorded against: GitHub-hosted macOS
+runners top out at Xcode 26.3 (Swift 6.2.4) and swift.org's newest
+release is 6.3.3, while the reference is the Xcode-beta 6.4 toolchain.
+CI therefore CANNOT reproduce these entries exactly, and a gating run
+there would fail on another toolchain's spelling. Raise
+`referenceVersion` when the fixtures and this file are re-recorded
+against a newer oracle — the floor is a statement about which oracle the
+evidence belongs to, not a tolerance to be widened.

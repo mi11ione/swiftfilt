@@ -178,6 +178,13 @@ public struct RunReport {
     public private(set) var harnessErrors: [String] = []
     /// Free-form informational lines carried into the summary.
     public private(set) var notes: [String] = []
+    /// When set, gating divergences are reported in full but do NOT fail the
+    /// run, and the string says why. Set only when the live oracle is older
+    /// than `Oracle.referenceVersion`, where rendering-string and node-kind
+    /// differences are toolchain skew rather than engine defects. Harness
+    /// errors are unaffected — a broken oracle still fails. Purely a
+    /// softening of the exit code: nothing is hidden or reclassified.
+    public var advisoryReason: String?
 
     /// Stored-row cap for gating rows (counts stay exact past it): keeps a
     /// pathological everything-diverges run from holding millions of rows.
@@ -223,9 +230,13 @@ public struct RunReport {
     }
 
     /// The run's exit code: 0 only when there are no gating divergences
-    /// AND no harness errors.
+    /// AND no harness errors. An advisory run (oracle below the reference
+    /// version) still reports every divergence but exits 0 for them;
+    /// harness errors gate regardless, since a broken oracle is a setup
+    /// failure no toolchain skew explains.
     public var exitCode: Int32 {
         if !harnessErrors.isEmpty { return 2 }
+        if advisoryReason != nil { return 0 }
         return gatingTotal == 0 ? 0 : 1
     }
 
@@ -296,7 +307,12 @@ public struct RunReport {
         if gatingTotal == 0 {
             lines.append("UNEXPLAINED DIVERGENCES: 0")
         } else {
-            lines.append("UNEXPLAINED DIVERGENCES: \(grouped(gatingTotal)) — GATING")
+            if let advisoryReason {
+                lines.append("UNEXPLAINED DIVERGENCES: \(grouped(gatingTotal)) — ADVISORY (not gating)")
+                lines.append("  reason: \(advisoryReason)")
+            } else {
+                lines.append("UNEXPLAINED DIVERGENCES: \(grouped(gatingTotal)) — GATING")
+            }
             for key in gatingCounts.keys.sorted() {
                 lines.append("  \(key): \(grouped(gatingCounts[key] ?? 0))")
             }

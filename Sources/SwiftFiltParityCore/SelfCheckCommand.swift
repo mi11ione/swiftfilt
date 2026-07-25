@@ -117,6 +117,51 @@ public func runSelfCheckCommand(_ args: [String]) -> Int32 {
         ))
     }
 
+    // 6. The oracle-version floor: below the reference, divergences must be
+    //    reported IN FULL but must not gate — a softened exit code, never
+    //    suppression. The row still has to appear by name, or an advisory
+    //    run would quietly lose the evidence it exists to preserve.
+    do {
+        var report = RunReport(instrument: "selfcheck", catalogue: catalogue)
+        report.advisoryReason = Oracle.belowReference("swiftlang-\(Oracle.referenceVersion.major - 1).0")
+        report.record(Divergence(
+            leg: "selfcheck", klass: "synthetic-uncatalogued",
+            mangled: "$s9selfcheck8AdvisoryV", swiftfilt: "injected", oracle: "injected-other",
+        ))
+        let rendered = report.render()
+        checks.append((
+            "an oracle below the reference version does not gate",
+            report.advisoryReason != nil && report.exitCode == 0, "exitCode=\(report.exitCode)",
+        ))
+        checks.append((
+            "an advisory run still names every divergence",
+            rendered.contains("$s9selfcheck8AdvisoryV") && rendered.contains("ADVISORY"),
+            "row named: \(rendered.contains("$s9selfcheck8AdvisoryV"))",
+        ))
+        // A broken oracle is a setup failure no toolchain skew explains, so
+        // harness errors must gate straight through advisory mode.
+        report.recordHarnessError("synthetic harness failure")
+        checks.append((
+            "harness errors gate even on an advisory run",
+            report.exitCode == 2, "exitCode=\(report.exitCode)",
+        ))
+    }
+
+    // 7. At or above the reference version there is no advisory softening:
+    //    the floor must not become a permanent excuse.
+    do {
+        var report = RunReport(instrument: "selfcheck", catalogue: catalogue)
+        report.advisoryReason = Oracle.belowReference("swiftlang-\(Oracle.referenceVersion.major).\(Oracle.referenceVersion.minor).0.1")
+        report.record(Divergence(
+            leg: "selfcheck", klass: "synthetic-uncatalogued",
+            mangled: "$s9selfcheck9AtRefererV", swiftfilt: "injected", oracle: "injected-other",
+        ))
+        checks.append((
+            "an oracle at the reference version still gates",
+            report.advisoryReason == nil && report.exitCode != 0, "exitCode=\(report.exitCode)",
+        ))
+    }
+
     var failed = 0
     for check in checks {
         let mark = check.passed ? "ok" : "FAILED"

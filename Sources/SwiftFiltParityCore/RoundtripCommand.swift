@@ -78,7 +78,11 @@ public func runRoundtripCommand(_ args: [String]) async -> Int32 {
     let catalogue = DeviationCatalogue.load()
     var report = RunReport(instrument: tag.map { "roundtrip-\($0)" } ?? "roundtrip", catalogue: catalogue)
     let oracle = if let oracleOverride { oracleOverride } else { await Oracle.locate() }
-    let oracleIdentity: String? = if let oracle { await "\(oracle) [\(Oracle.identity(oracle))]" } else { nil }
+    // Keep the raw token: the display line below also carries the tool PATH,
+    // and an /Applications/Xcode_26.3.app/… prefix parses as version 26.3.
+    let oracleVersionToken: String? = if let oracle { await Oracle.identity(oracle) } else { nil }
+    let oracleIdentity: String? = if let oracle, let oracleVersionToken { "\(oracle) [\(oracleVersionToken)]" } else { nil }
+    report.advisoryReason = oracleVersionToken.flatMap(Oracle.belowReference)
     report.note("symbols: \(source.descriptionLine)\(skip == 0 ? "" : " skip=\(grouped(skip))")\(limit == .max ? "" : " limit=\(grouped(limit))")")
     if oracle == nil {
         report.note("oracle: NONE — non-identity conversions gate as conversion-unadjudicated")

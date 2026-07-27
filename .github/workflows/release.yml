@@ -6,12 +6,12 @@
 # and attaches everything to an auto-created GitHub Release, then points
 # the Homebrew tap at that release. `install.sh` reads the same artifacts.
 #
-# The tap bump is a cross-repo push, so it needs a PAT with contents:write
-# on mi11ione/homebrew-tap as the HOMEBREW_TAP_TOKEN secret. Absent that
-# secret the release still publishes and the `tap` job warns — the formula
-# then advertises the PREVIOUS version, an install that looks successful
-# and isn't, which is why the bump belongs in the pipeline and not in
-# someone's memory.
+# The tap bump lives in `tap.yml` (also runnable on its own) and needs a PAT
+# with contents:write on mi11ione/homebrew-tap as the HOMEBREW_TAP_TOKEN
+# secret. Absent that secret the release still publishes and the tap job
+# warns — the formula then advertises the PREVIOUS version, an install that
+# looks successful and isn't, which is why the bump belongs in the pipeline
+# and not in someone's memory.
 #
 # The tag must equal `CLI.version` (Sources/SwiftFiltCLICore/CLI.swift),
 # the package's single source of truth — the macOS job verifies the
@@ -127,70 +127,12 @@ jobs:
             --title "${VERSION}" \
             --notes "Prebuilt \`swiftfilt\` binaries: macOS universal (arm64 + x86_64), Linux x86_64 and aarch64 (static Swift stdlib). Install with the one-liner in the README, \`brew install mi11ione/tap/swiftfilt\`, or download and verify against \`checksums.txt\`."
 
+  # Points the tap at the release just published. Separate workflow so the
+  # same sync can be re-run on its own when the PAT behind it expires.
   tap:
-    name: Bump Homebrew formula
+    name: Homebrew tap
     needs: [release]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      # The tap is a separate repo, so `github.token` cannot reach it —
-      # this needs a PAT with contents:write on mi11ione/homebrew-tap,
-      # stored here as HOMEBREW_TAP_TOKEN. Without it the release still
-      # stands; only the formula is stale, and the warning says so rather
-      # than failing a release whose artifacts are already published.
-      - name: Tap token present?
-        id: gate
-        env:
-          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-        run: |
-          if [ -z "${TAP_TOKEN}" ]; then
-            echo "::warning::HOMEBREW_TAP_TOKEN is not set — mi11ione/homebrew-tap still points at the previous release, so \`brew install mi11ione/tap/swiftfilt\` installs the OLD version. Run Scripts/bump-formula.sh against the tap by hand, or add the secret."
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          fi
-      - uses: actions/checkout@v6
-        if: steps.gate.outputs.ok == 'true'
-      - uses: actions/checkout@v6
-        if: steps.gate.outputs.ok == 'true'
-        with:
-          repository: mi11ione/homebrew-tap
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: tap
-      - name: Bump and push the formula
-        if: steps.gate.outputs.ok == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION="${GITHUB_REF_NAME}"
-          gh release download "${VERSION}" \
-            --repo "${GITHUB_REPOSITORY}" \
-            --pattern checksums.txt \
-            --output checksums.txt
-          Scripts/bump-formula.sh tap/Formula/swiftfilt.rb "${VERSION}" checksums.txt
-          cd tap
-          if git diff --quiet -- Formula/swiftfilt.rb; then
-            echo "formula already at ${VERSION}"
-            exit 0
-          fi
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          git commit -q -m "swiftfilt ${VERSION}" -- Formula/swiftfilt.rb
-          git push origin HEAD:main
-      # What the pushed formula promises, checked against what is actually
-      # downloadable — every arch, not just this runner's. A URL typo or a
-      # transposed checksum fails here, seconds after the push, instead of
-      # on the machine of whoever runs the arch nobody tested.
-      - name: Verify the pushed formula
-        if: steps.gate.outputs.ok == 'true'
-        run: |
-          ruby -c tap/Formula/swiftfilt.rb
-          awk '/^[[:space:]]*url[[:space:]]+"/ { u = $2 }
-               /^[[:space:]]*sha256[[:space:]]+"/ { print u, $2 }' \
-            tap/Formula/swiftfilt.rb | tr -d '"' > pairs.txt
-          cat pairs.txt
-          test "$(wc -l < pairs.txt)" -eq 3
-          while read -r url sha; do
-            curl -fsSL --retry 3 -o asset.tar.gz "${url}"
-            echo "${sha}  asset.tar.gz" | sha256sum -c -
-          done < pairs.txt
+    uses: ./.github/workflows/tap.yml
+    with:
+      version: ${{ github.ref_name }}
+    secrets: inherit

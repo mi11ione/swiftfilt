@@ -56,6 +56,18 @@ jobs:
           if [ -z "${TAP_TOKEN}" ]; then
             echo "::warning::HOMEBREW_TAP_TOKEN is not set — mi11ione/homebrew-tap still points at the previous release, so \`brew install mi11ione/tap/swiftfilt\` installs the OLD version. Run Scripts/bump-formula.sh against the tap by hand, or add the secret."
             echo "ok=false" >> "$GITHUB_OUTPUT"
+          # A shape check, not an auth check: `gh secret set` with no -b reads
+          # the value from stdin, so a non-interactive shell stores an empty
+          # string, and `-b "$(pbpaste)"` stores whatever the clipboard last
+          # held. Both have happened. Neither is worth discovering as `Bad
+          # credentials` three retries into actions/checkout.
+          # The whitespace test is separate because grep is line-oriented and
+          # would happily match a token with a trailing newline glued on —
+          # which authenticates as nothing.
+          elif [ "${TAP_TOKEN}" != "${TAP_TOKEN%%[[:space:]]*}" ] \
+            || ! printf '%s' "${TAP_TOKEN}" | grep -qE '^(gh[pousr]_|github_pat_)[A-Za-z0-9_]+$'; then
+            echo "::error::HOMEBREW_TAP_TOKEN is set but is not shaped like a GitHub token (expected a ghp_ or github_pat_ prefix, no whitespace). It was likely set from the wrong value — re-set the secret and re-run this workflow."
+            exit 1
           else
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi

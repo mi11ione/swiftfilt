@@ -8,12 +8,12 @@ Apple M4, macOS 27, Swift 6.4, release, foreground; medians of 5 runs on the com
 
 | contender | 1-symbol latency | batch throughput | CPU/symbol | allocs/symbol | matches `swift-demangle` |
 |---|---|---|---|---|---|
-| **swiftfilt** one-shot | 371 ns | 723k sym/s | 1,383 ns | 14.1 | **100.00%** |
-| **swiftfilt** session | 325 ns | 819k sym/s | 1,222 ns | 8.0 | **100.00%** |
-| `swift-demangle` subprocess | 1.35 ms ¹ | 400k sym/s | 2,147 ns ² | — ² | **100.00%** |
-| dlsym `swift_demangle` | **235 ns** | **1,299k sym/s** | **770 ns** | **5.9** | 81.46% ³ |
-| CwlDemangle | 1,255 ns | 149k sym/s | 6,690 ns | 41.1 | 94.30% |
-| `Runtime.demangle` (SE-0498) | 294 ns | 1,157k sym/s | 865 ns | 8.0 | 81.46% ³ |
+| **swiftfilt** one-shot | 360 ns | 772k sym/s | 1,293 ns | 13.9 | **100.00%** |
+| **swiftfilt** session | 307 ns | 876k sym/s | 1,140 ns | 7.8 | **100.00%** |
+| `swift-demangle` subprocess | 1.33 ms ¹ | 410k sym/s | 2,096 ns ² | — ² | **100.00%** |
+| dlsym `swift_demangle` | **232 ns** | **1,318k sym/s** | **759 ns** | **5.9** | 81.46% ³ |
+| CwlDemangle | 1,249 ns | 154k sym/s | 6,500 ns | 41.1 | 94.30% |
+| `Runtime.demangle` (SE-0498) | 291 ns | 1,179k sym/s | 848 ns | 8.0 | 81.46% ³ |
 
 ¹ spawn-per-symbol — the only single-symbol form a subprocess has; the batch row amortizes one spawn over all 10,845 symbols via stdin (its best case). ² child-process CPU; child-side allocations are unobservable from the parent. ³ every miss is the engine's unsugared display convention, not a misparse — split out below.
 
@@ -21,14 +21,14 @@ Text filter / CLI wall, identical 64 MiB crash-log-density log:
 
 | contender | wall | throughput | CPU/MB | peak RSS |
 |---|---|---|---|---|
-| `swiftfilt` (parallel, default) | **0.11 s** | **610 MB/s** | 10.8 ms | 41.5 MiB |
-| `swiftfilt --jobs 1` | 0.49 s | 137 MB/s | **7.3 ms** | 14.2 MiB |
-| SwiftFilt library, single thread | — | 139 MB/s | 7.2 ms | in-process |
-| `swift-demangle` filter | 1.33 s | 50 MB/s | 19.7 ms | **3.2 MiB** |
+| `swiftfilt` (parallel, default) | **0.12 s** | **559 MB/s** | 11.8 ms | 41.1 MiB |
+| `swiftfilt --jobs 1` | 0.47 s | 143 MB/s | 7.0 ms | 12.8 MiB |
+| SwiftFilt library, single thread | — | 147 MB/s | **6.8 ms** | in-process |
+| `swift-demangle` filter | 1.35 s | 50 MB/s | 20.1 ms | **3.2 MiB** |
 
 The other contenders have no text filter — dlsym, CwlDemangle, and `Runtime.demangle` demangle one already-extracted name per call.
 
-In one look: the dlsym hook is the fastest raw string→string engine per call, and this card says so — swiftfilt holds it to 1.6× (session) / 1.8× (one-shot) while being the only contender besides the toolchain tool that reproduces the reference rendering byte-for-byte, and the only one that also gives structure, styles, identity keys, byte-safe filtering, and a stability contract. On wall clock over real log bytes, the parallel CLI is 12× the toolchain filter.
+In one look: the dlsym hook is the fastest raw string→string engine per call, and this card says so — swiftfilt holds it to 1.5× (session) / 1.7× (one-shot) while being the only contender besides the toolchain tool that reproduces the reference rendering byte-for-byte, and the only one that also gives structure, styles, identity keys, byte-safe filtering, and a stability contract. On wall clock over real log bytes, the parallel CLI is 11× the toolchain filter.
 
 ## Correctness coverage (measured, never asserted)
 
@@ -60,15 +60,15 @@ What the differences are, split by a second oracle (each tool's own `--no-sugar`
 
 ## Notes
 
-- **Single-symbol latency** is the identical 14-byte everyday function symbol, sequential calls. Spawn-per-symbol — the pattern scripts actually write — is ~4,000× a warm in-process call: process creation costs milliseconds, the demangle costs sub-microseconds. swiftfilt's session allocs/call is **2** (input copy + result string); one-shot is 6. Deep-generic worst case (the stream's longest mangling, 1,325 bytes): 26.6 µs, 293 allocations.
-- **swiftfilt-only vectors** (no contender supports them, `structure` mode): parse to `DemangledSymbol` 1.49 µs · identity-key derivation 0.94 µs · five-field read 0.45 µs. The census streams a 1,000,000-row link map in 417 MiB peak.
+- **Single-symbol latency** is the identical 14-byte everyday function symbol, sequential calls. Spawn-per-symbol — the pattern scripts actually write — is ~4,000× a warm in-process call: process creation costs milliseconds, the demangle costs sub-microseconds. swiftfilt's session allocs/call is **2** (input copy + result string); one-shot is 6. Deep-generic worst case (the stream's longest mangling, 1,325 bytes): 24.1 µs, 250 allocations.
+- **swiftfilt-only vectors** (no contender supports them, `structure` mode): parse to `DemangledSymbol` 1.59 µs · identity-key derivation 0.83 µs · five-field read 0.45 µs. The census streams a 1,000,000-row link map in 417 MiB peak.
 - **Capabilities.** The dlsym hook and `Runtime.demangle` are string→string only — no styles, structure, old-grammar guarantee, or output-stability contract, and only inside a Swift process. `swift-demangle` gives the reference renderings but a spawn per batch, text out, no JSON, and a single-threaded filter. CwlDemangle is one embeddable Swift file, frozen at its port date. The root README's [positioning table](../README.md#positioning-vs-runtimedemangle-se-0498) is the full capability matrix; this file measures what's measurable.
 
 ## Methodology
 
-Apple M4 (4P+6E), 24 GiB, macOS 27, Swift 6.4 (swiftlang-6.4.0.25.4), release. Absolutes are host-class-relative; the ratios are the portable part.
+Apple M4 (4P+6E), 24 GiB, macOS 27, Swift 6.4 (swiftlang-6.4.0.27.1), release. Absolutes are host-class-relative; the ratios are the portable part.
 
-- **Contenders pinned:** swiftfilt 0.9.0 (this checkout) · `swift-demangle` and the dlsym'd runtime from swiftlang-6.4.0.25.4 (Xcode 26 beta) · CwlDemangle `mattgallagher/CwlDemangle` @ `6bfc351` (repo HEAD, 2025-03-31; no version tags, so revision-pinned) · `Runtime.demangle` from the Swift 6.4 stdlib (`@available(macOS 27)`). Where `Runtime.demangle` can't run, the harness prints the exact reason instead of silently omitting rows.
+- **Contenders pinned:** swiftfilt 1.0.1 (this checkout) · `swift-demangle` and the dlsym'd runtime from swiftlang-6.4.0.27.1 (Xcode 27.0 beta) · CwlDemangle `mattgallagher/CwlDemangle` @ `6bfc351` (repo HEAD, 2025-03-31; no version tags, so revision-pinned) · `Runtime.demangle` from the Swift 6.4 stdlib (`@available(macOS 27)`). Where `Runtime.demangle` can't run, the harness prints the exact reason instead of silently omitting rows.
 - **Each contender at its best:** swiftfilt one-shot and session are separate labeled rows; the subprocess gets one spawn per batch via stdin (coverage runs args mode, grading its demangler not its line scanner); the dlsym hook is resolved once and reused; CwlDemangle runs `.default + .synthesizeSugarOnTypes`, the options that maximize its byte-agreement (plain `.default` would score 77.73%); `Runtime.demangle` is one call per symbol. All subprocess work uses raw `posix_spawn`/`waitpid` — Foundation's `Process` was measured adding ~65 ms per spawn on this OS, which would bill harness overhead to the subprocess contenders.
 - **Inputs are deterministic:** the symbol stream is the committed fixture corpora (10,845 real-world names spanning every era); the filter/CLI logs are generated from seed `0xc0ffee0015bad`, crash-log density (half the lines carry one mangled name).
 - **Timing:** 1 warmup (filter: 3) + 5 recorded runs (`ContinuousClock`); reported figure is the median, spread is (max−min)/median; results fold into an opaque sink. Run FOREGROUND — macOS gives background process groups efficiency-core scheduling that roughly halves every number; the `utilization` column (≥99.9% in-process) is the tell. CPU time is the rusage user+system delta; allocations are counted in one extra unrecorded pass via libmalloc's `malloc_logger`; peak RSS is the `ru_maxrss` growth across the workload.

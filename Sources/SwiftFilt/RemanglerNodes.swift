@@ -16,7 +16,7 @@ extension Remangler {
     func mangleAnyGenericType(_ node: SwiftSymbol, _ typeOp: String, depth: Int) -> Bool {
         if !trySubstitution(node) {
             guard mangleChildNodes(node, depth: depth + 1) else { return false }
-            emit(typeOp)
+            emitDynamic(typeOp)
             addSubstitution(node)
         }
         return true
@@ -135,12 +135,12 @@ extension Remangler {
         let paramDepth = node.children[0].index ?? 0
         let index = node.children[1].index ?? 0
         if paramDepth != 0 {
-            emit(nonZeroPrefix); emit(UInt8(0x64)) // 'd'
+            emitDynamic(nonZeroPrefix); emit(UInt8(0x64)) // 'd'
             mangleIndex(paramDepth - 1); mangleIndex(index)
             return
         }
         if index != 0 {
-            emit(nonZeroPrefix); mangleIndex(index - 1); return
+            emitDynamic(nonZeroPrefix); mangleIndex(index - 1); return
         }
         emit(zeroOp)
     }
@@ -158,7 +158,7 @@ extension Remangler {
         case .Variable: emit(UInt8(0x76)) // 'v'
         default: return false
         }
-        emit(accessorCode)
+        emitDynamic(accessorCode)
         return true
     }
 

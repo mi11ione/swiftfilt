@@ -56,7 +56,7 @@ struct HelpAndVersionTests {
         let run = runCLI(["--version"])
         #expect(run.status == CLI.exitSuccess)
         #expect(run.stdout == "swiftfilt \(CLI.version)\n")
-        #expect(CLI.version == "1.0.1")
+        #expect(CLI.version == "1.0.2")
     }
 
     @Test func helpShowsCensusExamples() {

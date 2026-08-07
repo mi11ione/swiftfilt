@@ -185,7 +185,24 @@ struct NodePrinter<B: NodeBuilder> {
 
     // MARK: emit helpers
 
-    @inline(__always) mutating func emit(_ s: String) {
+    /// Append a COMPILE-TIME-CONSTANT fragment. A `StaticString` is a pointer
+    /// and a length, so this is a bounds check and a memcpy; the `String`
+    /// overload below runs `String.UTF8View`'s `Sequence` conformance through
+    /// `_StringGuts.copyUTF8` with a bridge-object retain/release per call. The
+    /// printer emits ~460 fixed fragments per render and every one of them paid
+    /// that — when the text is fixed, `String` IS the cost. Overload resolution
+    /// does the split: an uninterpolated literal binds here, an interpolation or
+    /// a `nb.text(of:)` binds to ``emitDynamic(_:)``, and the compiler names
+    /// every site that must move.
+    ///
+    /// Byte-identical to the `String` form: `StaticString.withUTF8Buffer` yields
+    /// the literal's UTF-8, which is what `String.utf8` yielded for the same
+    /// literal.
+    @inline(__always) mutating func emit(_ s: StaticString) {
+        s.withUTF8Buffer { bytes.append(contentsOf: $0) }
+    }
+
+    @inline(__always) mutating func emitDynamic(_ s: String) {
         bytes.append(contentsOf: s.utf8)
     }
 
@@ -278,7 +295,7 @@ struct NodePrinter<B: NodeBuilder> {
         let count = nb.childCount(of: node)
         var first = true
         for i in 0 ..< count {
-            if !first, let separator { emit(separator) }
+            if !first, let separator { emitDynamic(separator) }
             first = false
             _ = print(nb.child(of: node, at: i), depth: depth + 1)
         }
@@ -286,6 +303,19 @@ struct NodePrinter<B: NodeBuilder> {
 
     func child(_ node: B.Node, _ index: Int) -> B.Node? {
         index >= 0 && index < nb.childCount(of: node) ? nb.child(of: node, at: index) : nil
+    }
+
+    /// The POSITION of the first child of `kind`, for the callers that only
+    /// need to know whether it is there. ``childIf(_:_:)`` answers the same
+    /// question by materializing the child — for the value backend a retain of
+    /// its children array and payload, released again on scope exit — and it
+    /// sits on `printEntity`, the printer's hottest path. A position costs
+    /// nothing to return.
+    @inline(__always) func childIndexIf(_ node: B.Node, _ kind: SwiftSymbol.Kind) -> Int? {
+        for i in 0 ..< nb.childCount(of: node) where nb.kind(of: nb.child(of: node, at: i)) == kind {
+            return i
+        }
+        return nil
     }
 
     func childIf(_ node: B.Node, _ kind: SwiftSymbol.Kind) -> B.Node? {

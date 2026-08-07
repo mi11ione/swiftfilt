@@ -64,7 +64,7 @@ extension Demangler {
             let repeatCount = demangleNatural()
             if repeatCount > SwiftManglingConstants.maxRepeatCount { return nil }
             let secondLevel = nextIf(0x63) // 'c'
-            guard let node = StandardSubstitutions.node(forSubstitution: Character(UnicodeScalar(nextChar())), secondLevel: secondLevel, nb) else {
+            guard let node = StandardSubstitutions.node(forSubstitution: nextChar(), secondLevel: secondLevel, nb) else {
                 return nil
             }
             var remaining = repeatCount

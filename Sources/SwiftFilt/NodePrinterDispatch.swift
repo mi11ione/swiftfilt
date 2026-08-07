@@ -19,46 +19,45 @@ extension NodePrinter {
             return nil
         }
         let d = depth + 1
-        let c0 = nb.firstChild(of: node)
         switch nb.kind(of: node) {
-        case .Static: emit("static "); printc(c0, d); return nil
-        case .AsyncRemoved: emit("async demotion of "); printc(c0, d); return nil
-        case .RepresentationChanged: emit("representation changed of "); printc(c0, d); return nil
-        case .CurryThunk: emit("curry thunk of "); printc(c0, d); return nil
-        case .SILThunkIdentity: emit("identity thunk of "); printc(c0, d); return nil
-        case .DispatchThunk: emit("dispatch thunk of "); printc(c0, d); return nil
-        case .MethodDescriptor: emit("method descriptor for "); printc(c0, d); return nil
-        case .MethodLookupFunction: emit("method lookup function for "); printc(c0, d); return nil
-        case .ObjCMetadataUpdateFunction: emit("ObjC metadata update function for "); printc(c0, d); return nil
-        case .ObjCResilientClassStub: emit("ObjC resilient class stub for "); printc(c0, d); return nil
-        case .FullObjCResilientClassStub: emit("full ObjC resilient class stub for "); printc(c0, d); return nil
-        case .OutlinedBridgedMethod: emit("outlined bridged method (\(nb.text(of: node) ?? "")) of "); return nil
+        case .Static: emit("static "); printFirst(node, d); return nil
+        case .AsyncRemoved: emit("async demotion of "); printFirst(node, d); return nil
+        case .RepresentationChanged: emit("representation changed of "); printFirst(node, d); return nil
+        case .CurryThunk: emit("curry thunk of "); printFirst(node, d); return nil
+        case .SILThunkIdentity: emit("identity thunk of "); printFirst(node, d); return nil
+        case .DispatchThunk: emit("dispatch thunk of "); printFirst(node, d); return nil
+        case .MethodDescriptor: emit("method descriptor for "); printFirst(node, d); return nil
+        case .MethodLookupFunction: emit("method lookup function for "); printFirst(node, d); return nil
+        case .ObjCMetadataUpdateFunction: emit("ObjC metadata update function for "); printFirst(node, d); return nil
+        case .ObjCResilientClassStub: emit("ObjC resilient class stub for "); printFirst(node, d); return nil
+        case .FullObjCResilientClassStub: emit("full ObjC resilient class stub for "); printFirst(node, d); return nil
+        case .OutlinedBridgedMethod: emitDynamic("outlined bridged method (\(nb.text(of: node) ?? "")) of "); return nil
         case .OutlinedCopy:
-            emit("outlined copy of "); printc(c0, d); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            emit("outlined copy of "); printFirst(node, d); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .OutlinedConsume:
-            emit("outlined consume of "); printc(c0, d); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
-        case .OutlinedRetain: emit("outlined retain of "); printc(c0, d); return nil
-        case .OutlinedRelease: emit("outlined release of "); printc(c0, d); return nil
+            emit("outlined consume of "); printFirst(node, d); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+        case .OutlinedRetain: emit("outlined retain of "); printFirst(node, d); return nil
+        case .OutlinedRelease: emit("outlined release of "); printFirst(node, d); return nil
         case .OutlinedInitializeWithTake, .OutlinedInitializeWithTakeNoValueWitness:
-            emit("outlined init with take of "); printc(c0, d); return nil
+            emit("outlined init with take of "); printFirst(node, d); return nil
         case .OutlinedInitializeWithCopy, .OutlinedInitializeWithCopyNoValueWitness:
-            emit("outlined init with copy of "); printc(c0, d); return nil
+            emit("outlined init with copy of "); printFirst(node, d); return nil
         case .OutlinedAssignWithTake, .OutlinedAssignWithTakeNoValueWitness:
-            emit("outlined assign with take of "); printc(c0, d); return nil
+            emit("outlined assign with take of "); printFirst(node, d); return nil
         case .OutlinedAssignWithCopy, .OutlinedAssignWithCopyNoValueWitness:
-            emit("outlined assign with copy of "); printc(c0, d); return nil
+            emit("outlined assign with copy of "); printFirst(node, d); return nil
         case .OutlinedDestroy, .OutlinedDestroyNoValueWitness:
-            emit("outlined destroy of "); printc(c0, d); return nil
-        case .OutlinedEnumProjectDataForLoad: emit("outlined enum project data for load of "); printc(c0, d); return nil
-        case .OutlinedEnumTagStore: emit("outlined enum tag store of "); printc(c0, d); return nil
-        case .OutlinedEnumGetTag: emit("outlined enum get tag of "); printc(c0, d); return nil
+            emit("outlined destroy of "); printFirst(node, d); return nil
+        case .OutlinedEnumProjectDataForLoad: emit("outlined enum project data for load of "); printFirst(node, d); return nil
+        case .OutlinedEnumTagStore: emit("outlined enum tag store of "); printFirst(node, d); return nil
+        case .OutlinedEnumGetTag: emit("outlined enum get tag of "); printFirst(node, d); return nil
         case .OutlinedVariable: emit("outlined variable #"); emit(nb.index(of: node) ?? 0); emit(" of "); return nil
         case .OutlinedReadOnlyObject: emit("outlined read-only object #"); emit(nb.index(of: node) ?? 0); emit(" of "); return nil
         case .Directness: emit(nb.index(of: node) == 0 ? "direct " : "indirect "); return nil
         case .AnonymousContext:
             if options.qualifyEntities, options.displayExtensionContexts {
                 _ = print(nb.child(of: node, at: 1), depth: d)
-                emit(".(unknown context at "); printc(c0, d); emit(")")
+                emit(".(unknown context at "); printFirst(node, d); emit(")")
                 if nb.childCount(of: node) >= 3, nb.childCount(of: nb.child(of: node, at: 2)) != 0 {
                     emit("<"); _ = print(nb.child(of: node, at: 2), depth: d); emit(">")
                 }
@@ -96,7 +95,7 @@ extension NodePrinter {
                                extraName: "freestanding macro expansion #",
                                extraIndex: Int(child(node, 2).flatMap { nb.index(of: $0) } ?? 0) + 1)
         case .MacroExpansionLoc:
-            if nb.childCount(of: node) > 0 { emit("module "); printc(c0, d) }
+            if nb.childCount(of: node) > 0 { emit("module "); printFirst(node, d) }
             if nb.childCount(of: node) > 1 { emit(" file "); _ = print(nb.child(of: node, at: 1), depth: d) }
             if nb.childCount(of: node) > 2 { emit(" line "); _ = print(nb.child(of: node, at: 2), depth: d) }
             if nb.childCount(of: node) > 3 { emit(" column "); _ = print(nb.child(of: node, at: 3), depth: d) }
@@ -116,7 +115,7 @@ extension NodePrinter {
                                hasName: false, extraName: "implicit closure #", extraIndex: Int(child(node, 1).flatMap { nb.index(of: $0) } ?? 0) + 1)
         case .Global: printChildren(node, depth: depth); return nil
         case .Suffix:
-            if options.displayUnmangledSuffix { emit(" with unmangled suffix " + quoted(nb.text(of: node) ?? "")) }
+            if options.displayUnmangledSuffix { emitDynamic(" with unmangled suffix " + quoted(nb.text(of: node) ?? "")) }
             return nil
         case .Initializer:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: false,
@@ -133,30 +132,30 @@ extension NodePrinter {
         case .DefaultArgumentInitializer:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: false,
                                extraName: "default argument ", extraIndex: Int(child(node, 1).flatMap { nb.index(of: $0) } ?? 0))
-        case .DeclContext: printc(c0, d); return nil
-        case .`Type`: printc(c0, d); return nil
+        case .DeclContext: printFirst(node, d); return nil
+        case .`Type`: printFirst(node, d); return nil
         case .TypeMangling:
-            if let c0, nb.kind(of: c0) == .LabelList, let c1 = child(node, 1), let inner = nb.firstChild(of: c1) {
+            if let c0 = nb.firstChild(of: node), nb.kind(of: c0) == .LabelList, let c1 = child(node, 1), let inner = nb.firstChild(of: c1) {
                 printFunctionType(labelList: c0, inner, depth: depth)
-            } else { printc(c0, d) }
+            } else { printFirst(node, d) }
             return nil
         case .Class, .Structure, .Enum, .protocolNode, .TypeAlias, .OtherNominalType:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: true)
         case .LocalDeclName:
             if let c1 = child(node, 1) { _ = print(c1, depth: d) }
-            if options.displayLocalNameContexts { emit(" #"); emit((c0.flatMap { nb.index(of: $0) } ?? 0) + 1) }
+            if options.displayLocalNameContexts { emit(" #"); emit((nb.firstChild(of: node).flatMap { nb.index(of: $0) } ?? 0) + 1) }
             return nil
         case .PrivateDeclName:
             if nb.childCount(of: node) > 1 {
                 if options.showPrivateDiscriminators { emit("(") }
                 _ = print(nb.child(of: node, at: 1), depth: d)
-                if options.showPrivateDiscriminators { emit(" in "); if let c = c0 { emitText(of: c) }; emit(")") }
+                if options.showPrivateDiscriminators { emit(" in "); if let c = nb.firstChild(of: node) { emitText(of: c) }; emit(")") }
             } else if options.showPrivateDiscriminators {
-                emit("(in "); if let c = c0 { emitText(of: c) }; emit(")")
+                emit("(in "); if let c = nb.firstChild(of: node) { emitText(of: c) }; emit(")")
             }
             return nil
         case .RelatedEntityDeclName:
-            emit("related decl '"); if let c = c0 { emitText(of: c) }; emit("' for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            emit("related decl '"); if let c = nb.firstChild(of: node) { emitText(of: c) }; emit("' for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .Module: if options.displayModuleNames { emitText(of: node) }; return nil
         case .Identifier: emitText(of: node); return nil
         case .Index: emit(nb.index(of: node) ?? 0); return nil
@@ -170,33 +169,33 @@ extension NodePrinter {
         case .TupleElement:
             if let label = childIf(node, .TupleElementName) { emitText(of: label); emit(": ") }
             if let type = childIf(node, .`Type`) { _ = print(type, depth: d) }
-            if childIf(node, .VariadicMarker) != nil { emit("...") }
+            if childIndexIf(node, .VariadicMarker) != nil { emit("...") }
             return nil
         case .TupleElementName: emitText(of: node); emit(": "); return nil
         case .Pack: emit("Pack{"); printChildren(node, depth: depth, separator: ", "); emit("}"); return nil
         case .SILPackDirect, .SILPackIndirect:
             emit(nb.kind(of: node) == .SILPackDirect ? "@direct" : "@indirect")
             emit(" Pack{"); printChildren(node, depth: depth, separator: ", "); emit("}"); return nil
-        case .PackExpansion: emit("repeat "); printc(c0, d); return nil
+        case .PackExpansion: emit("repeat "); printFirst(node, d); return nil
         case .PackElement:
-            emit("/* level: "); emit(child(node, 1).flatMap { nb.index(of: $0) } ?? 0); emit(" */ "); emit("each "); printc(c0, d); return nil
+            emit("/* level: "); emit(child(node, 1).flatMap { nb.index(of: $0) } ?? 0); emit(" */ "); emit("each "); printFirst(node, d); return nil
         case .ReturnType:
             if nb.childCount(of: node) == 0 { emitText(of: node) } else { printChildren(node, depth: depth) }
             return nil
         case .RetroactiveConformance:
             if nb.childCount(of: node) != 2 { return nil }
-            emit("retroactive @ "); printc(c0, d); _ = print(nb.child(of: node, at: 1), depth: d); return nil
-        case .Weak: emit("weak "); printc(c0, d); return nil
-        case .Unowned: emit("unowned "); printc(c0, d); return nil
-        case .Unmanaged: emit("unowned(unsafe) "); printc(c0, d); return nil
-        case .InOut: emit("inout "); printc(c0, d); return nil
-        case .Isolated: emit("isolated "); printc(c0, d); return nil
-        case .Sending: emit("sending "); printc(c0, d); return nil
-        case .CompileTimeLiteral: emit("_const "); printc(c0, d); return nil
-        case .ConstValue: emit("@const "); printc(c0, d); return nil
-        case .Shared: emit("__shared "); printc(c0, d); return nil
-        case .Owned: emit("__owned "); printc(c0, d); return nil
-        case .NoDerivative: emit("@noDerivative "); printc(c0, d); return nil
+            emit("retroactive @ "); printFirst(node, d); _ = print(nb.child(of: node, at: 1), depth: d); return nil
+        case .Weak: emit("weak "); printFirst(node, d); return nil
+        case .Unowned: emit("unowned "); printFirst(node, d); return nil
+        case .Unmanaged: emit("unowned(unsafe) "); printFirst(node, d); return nil
+        case .InOut: emit("inout "); printFirst(node, d); return nil
+        case .Isolated: emit("isolated "); printFirst(node, d); return nil
+        case .Sending: emit("sending "); printFirst(node, d); return nil
+        case .CompileTimeLiteral: emit("_const "); printFirst(node, d); return nil
+        case .ConstValue: emit("@const "); printFirst(node, d); return nil
+        case .Shared: emit("__shared "); printFirst(node, d); return nil
+        case .Owned: emit("__owned "); printFirst(node, d); return nil
+        case .NoDerivative: emit("@noDerivative "); printFirst(node, d); return nil
         case .NonObjCAttribute: emit("@nonobjc "); return nil
         case .ObjCAttribute: emit("@objc "); return nil
         case .DirectMethodReferenceAttribute: emit("super "); return nil
@@ -212,7 +211,7 @@ extension NodePrinter {
         case .IsSerialized: emit("serialized"); return nil
         case .DroppedArgument: emit("param"); emit(nb.index(of: node) ?? 0); emit("-removed"); return nil
         case .GenericSpecializationParam:
-            printc(c0, d)
+            printFirst(node, d)
             for i in 1 ..< nb.childCount(of: node) {
                 emit(i == 1 ? " with " : " and "); _ = print(nb.child(of: node, at: i), depth: d)
             }
@@ -220,7 +219,7 @@ extension NodePrinter {
         case .FunctionSignatureSpecializationParamPayload:
             if let t = nb.text(of: node) {
                 let demangled = demangleSymbolAsString(t)
-                emit(demangled.isEmpty ? t : demangled)
+                emitDynamic(demangled.isEmpty ? t : demangled)
             } else if let i = nb.index(of: node) { emit(i) }
             return nil
         case .FunctionSignatureSpecializationParamKind:
@@ -229,33 +228,33 @@ extension NodePrinter {
         case .BuiltinTypeName: emitText(of: node); return nil
         case .BuiltinTupleType: emit("Builtin.TheTupleType"); return nil
         case .BuiltinFixedArray:
-            emit("Builtin.FixedArray<"); printc(c0, d); emit(", "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(">"); return nil
-        case .BuiltinBorrow: emit("Builtin.Borrow<"); printc(c0, d); emit(">"); return nil
+            emit("Builtin.FixedArray<"); printFirst(node, d); emit(", "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(">"); return nil
+        case .BuiltinBorrow: emit("Builtin.Borrow<"); printFirst(node, d); emit(">"); return nil
         case .Number: emit(nb.index(of: node) ?? 0); return nil
         case .InfixOperator: emitText(of: node); emit(" infix"); return nil
         case .PrefixOperator: emitText(of: node); emit(" prefix"); return nil
         case .PostfixOperator: emitText(of: node); emit(" postfix"); return nil
         case .LazyProtocolWitnessTableAccessor:
-            emit("lazy protocol witness table accessor for type "); printc(c0, d)
+            emit("lazy protocol witness table accessor for type "); printFirst(node, d)
             emit(" and conformance "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .LazyProtocolWitnessTableCacheVariable:
-            emit("lazy protocol witness table cache variable for type "); printc(c0, d)
+            emit("lazy protocol witness table cache variable for type "); printFirst(node, d)
             emit(" and conformance "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
-        case .ProtocolSelfConformanceWitnessTable: emit("protocol self-conformance witness table for "); printc(c0, d); return nil
-        case .ProtocolWitnessTableAccessor: emit("protocol witness table accessor for "); printc(c0, d); return nil
-        case .ProtocolWitnessTable: emit("protocol witness table for "); printc(c0, d); return nil
-        case .ProtocolWitnessTablePattern: emit("protocol witness table pattern for "); printc(c0, d); return nil
-        case .GenericProtocolWitnessTable: emit("generic protocol witness table for "); printc(c0, d); return nil
+        case .ProtocolSelfConformanceWitnessTable: emit("protocol self-conformance witness table for "); printFirst(node, d); return nil
+        case .ProtocolWitnessTableAccessor: emit("protocol witness table accessor for "); printFirst(node, d); return nil
+        case .ProtocolWitnessTable: emit("protocol witness table for "); printFirst(node, d); return nil
+        case .ProtocolWitnessTablePattern: emit("protocol witness table pattern for "); printFirst(node, d); return nil
+        case .GenericProtocolWitnessTable: emit("generic protocol witness table for "); printFirst(node, d); return nil
         case .GenericProtocolWitnessTableInstantiationFunction:
-            emit("instantiation function for generic protocol witness table for "); printc(c0, d); return nil
-        case .ResilientProtocolWitnessTable: emit("resilient protocol witness table for "); printc(c0, d); return nil
+            emit("instantiation function for generic protocol witness table for "); printFirst(node, d); return nil
+        case .ResilientProtocolWitnessTable: emit("resilient protocol witness table for "); printFirst(node, d); return nil
         case .VTableThunk:
             emit("vtable thunk for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
-            emit(" dispatching to "); printc(c0, d); return nil
-        case .ProtocolSelfConformanceWitness: emit("protocol self-conformance witness for "); printc(c0, d); return nil
+            emit(" dispatching to "); printFirst(node, d); return nil
+        case .ProtocolSelfConformanceWitness: emit("protocol self-conformance witness for "); printFirst(node, d); return nil
         case .ProtocolWitness:
             emit("protocol witness for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
-            emit(" in conformance "); printc(c0, d); return nil
+            emit(" in conformance "); printFirst(node, d); return nil
         case .PartialApplyForwarder:
             emit(options.shortenPartialApply ? "partial apply" : "partial apply forwarder")
             if nb.childCount(of: node) != 0 { emit(" for "); printChildren(node, depth: depth) }
@@ -272,14 +271,14 @@ extension NodePrinter {
             case .KeyPathUnappliedMethodThunkHelper: emit("key path unapplied method ")
             default: emit("key path applied method ")
             }
-            printc(c0, d); emit(" : ")
+            printFirst(node, d); emit(" : ")
             for i in 1 ..< nb.childCount(of: node) {
                 if nb.kind(of: nb.child(of: node, at: i)) == .IsSerialized { emit(", ") }
                 _ = print(nb.child(of: node, at: i), depth: d)
             }
             return nil
         case .KeyPathEqualsThunkHelper, .KeyPathHashThunkHelper:
-            emit("key path index \(nb.kind(of: node) == .KeyPathEqualsThunkHelper ? "equality" : "hash") operator for ")
+            emitDynamic("key path index \(nb.kind(of: node) == .KeyPathEqualsThunkHelper ? "equality" : "hash") operator for ")
             var lastIndex = nb.childCount(of: node)
             var last = nb.child(of: node, at: lastIndex - 1)
             if nb.kind(of: last) == .IsSerialized { lastIndex -= 1; last = nb.child(of: node, at: lastIndex - 1) }
@@ -291,10 +290,10 @@ extension NodePrinter {
             emit(")")
             return nil
         case .FieldOffset:
-            printc(c0, d); emit("field offset for ")
+            printFirst(node, d); emit("field offset for ")
             if let c1 = child(node, 1) { _ = print(c1, depth: d, asPrefixContext: false) }
             return nil
-        case .EnumCase: emit("enum case for "); if let c = c0 { _ = print(c, depth: d, asPrefixContext: false) }; return nil
+        case .EnumCase: emit("enum case for "); if let c = nb.firstChild(of: node) { _ = print(c, depth: d, asPrefixContext: false) }; return nil
         case .ReabstractionThunk, .ReabstractionThunkHelper:
             if options.shortenThunk {
                 emit("thunk for "); _ = print(nb.child(of: node, at: nb.childCount(of: node) - 1), depth: d); return nil
@@ -307,7 +306,7 @@ extension NodePrinter {
             emit(" to "); _ = print(nb.child(of: node, at: idx), depth: d)
             return nil
         case .ReabstractionThunkHelperWithGlobalActor:
-            printc(c0, d); emit(" with global actor constraint "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit(" with global actor constraint "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .ReabstractionThunkHelperWithSelf:
             emit("reabstraction thunk ")
             var idx = 0
@@ -354,66 +353,66 @@ extension NodePrinter {
         case .BackDeploymentThunk: if !options.shortenThunk { emit("back deployment thunk for ") }; return nil
         case .BackDeploymentFallback: emit("back deployment fallback for "); return nil
         case .ProtocolSymbolicReference: emit("protocol symbolic reference 0x"); emitHex(nb.index(of: node) ?? 0); return nil
-        case .GenericTypeMetadataPattern: emit("generic type metadata pattern for "); printc(c0, d); return nil
-        case .Metaclass: emit("metaclass for "); printc(c0, d); return nil
-        case .ProtocolSelfConformanceDescriptor: emit("protocol self-conformance descriptor for "); printc(c0, d); return nil
-        case .ProtocolConformanceDescriptor: emit("protocol conformance descriptor for "); printc(c0, d); return nil
-        case .ProtocolConformanceDescriptorRecord: emit("protocol conformance descriptor runtime record for "); printc(c0, d); return nil
-        case .ProtocolDescriptor: emit("protocol descriptor for "); printc(c0, d); return nil
-        case .ProtocolDescriptorRecord: emit("protocol descriptor runtime record for "); printc(c0, d); return nil
-        case .ProtocolRequirementsBaseDescriptor: emit("protocol requirements base descriptor for "); printc(c0, d); return nil
-        case .FullTypeMetadata: emit("full type metadata for "); printc(c0, d); return nil
-        case .TypeMetadata: emit("type metadata for "); printc(c0, d); return nil
-        case .TypeMetadataAccessFunction: emit("type metadata accessor for "); printc(c0, d); return nil
-        case .TypeMetadataInstantiationCache: emit("type metadata instantiation cache for "); printc(c0, d); return nil
-        case .TypeMetadataInstantiationFunction: emit("type metadata instantiation function for "); printc(c0, d); return nil
-        case .TypeMetadataSingletonInitializationCache: emit("type metadata singleton initialization cache for "); printc(c0, d); return nil
-        case .TypeMetadataCompletionFunction: emit("type metadata completion function for "); printc(c0, d); return nil
-        case .TypeMetadataDemanglingCache: emit("demangling cache variable for type metadata for "); printc(c0, d); return nil
-        case .TypeMetadataMangledNameRef: emit("mangled name ref for type metadata for "); printc(c0, d); return nil
-        case .TypeMetadataLazyCache: emit("lazy cache variable for type metadata for "); printc(c0, d); return nil
+        case .GenericTypeMetadataPattern: emit("generic type metadata pattern for "); printFirst(node, d); return nil
+        case .Metaclass: emit("metaclass for "); printFirst(node, d); return nil
+        case .ProtocolSelfConformanceDescriptor: emit("protocol self-conformance descriptor for "); printFirst(node, d); return nil
+        case .ProtocolConformanceDescriptor: emit("protocol conformance descriptor for "); printFirst(node, d); return nil
+        case .ProtocolConformanceDescriptorRecord: emit("protocol conformance descriptor runtime record for "); printFirst(node, d); return nil
+        case .ProtocolDescriptor: emit("protocol descriptor for "); printFirst(node, d); return nil
+        case .ProtocolDescriptorRecord: emit("protocol descriptor runtime record for "); printFirst(node, d); return nil
+        case .ProtocolRequirementsBaseDescriptor: emit("protocol requirements base descriptor for "); printFirst(node, d); return nil
+        case .FullTypeMetadata: emit("full type metadata for "); printFirst(node, d); return nil
+        case .TypeMetadata: emit("type metadata for "); printFirst(node, d); return nil
+        case .TypeMetadataAccessFunction: emit("type metadata accessor for "); printFirst(node, d); return nil
+        case .TypeMetadataInstantiationCache: emit("type metadata instantiation cache for "); printFirst(node, d); return nil
+        case .TypeMetadataInstantiationFunction: emit("type metadata instantiation function for "); printFirst(node, d); return nil
+        case .TypeMetadataSingletonInitializationCache: emit("type metadata singleton initialization cache for "); printFirst(node, d); return nil
+        case .TypeMetadataCompletionFunction: emit("type metadata completion function for "); printFirst(node, d); return nil
+        case .TypeMetadataDemanglingCache: emit("demangling cache variable for type metadata for "); printFirst(node, d); return nil
+        case .TypeMetadataMangledNameRef: emit("mangled name ref for type metadata for "); printFirst(node, d); return nil
+        case .TypeMetadataLazyCache: emit("lazy cache variable for type metadata for "); printFirst(node, d); return nil
         case .AssociatedConformanceDescriptor:
-            emit("associated conformance descriptor for "); printc(c0, d); emit(".")
+            emit("associated conformance descriptor for "); printFirst(node, d); emit(".")
             if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(": ")
             if let c2 = child(node, 2) { _ = print(c2, depth: d) }; return nil
         case .DefaultAssociatedConformanceAccessor:
-            emit("default associated conformance accessor for "); printc(c0, d); emit(".")
+            emit("default associated conformance accessor for "); printFirst(node, d); emit(".")
             if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(": ")
             if let c2 = child(node, 2) { _ = print(c2, depth: d) }; return nil
-        case .AssociatedTypeDescriptor: emit("associated type descriptor for "); printc(c0, d); return nil
+        case .AssociatedTypeDescriptor: emit("associated type descriptor for "); printFirst(node, d); return nil
         case .AssociatedTypeMetadataAccessor:
             emit("associated type metadata accessor for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
-            emit(" in "); printc(c0, d); return nil
+            emit(" in "); printFirst(node, d); return nil
         case .BaseConformanceDescriptor:
-            emit("base conformance descriptor for "); printc(c0, d); emit(": "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
-        case .DefaultAssociatedTypeMetadataAccessor: emit("default associated type metadata accessor for "); printc(c0, d); return nil
+            emit("base conformance descriptor for "); printFirst(node, d); emit(": "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+        case .DefaultAssociatedTypeMetadataAccessor: emit("default associated type metadata accessor for "); printFirst(node, d); return nil
         case .AssociatedTypeWitnessTableAccessor:
             emit("associated type witness table accessor for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
-            emit(" : "); if let c2 = child(node, 2) { _ = print(c2, depth: d) }; emit(" in "); printc(c0, d); return nil
+            emit(" : "); if let c2 = child(node, 2) { _ = print(c2, depth: d) }; emit(" in "); printFirst(node, d); return nil
         case .BaseWitnessTableAccessor:
             emit("base witness table accessor for "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
-            emit(" in "); printc(c0, d); return nil
-        case .ClassMetadataBaseOffset: emit("class metadata base offset for "); printc(c0, d); return nil
-        case .PropertyDescriptor: emit("property descriptor for "); printc(c0, d); return nil
-        case .NominalTypeDescriptor: emit("nominal type descriptor for "); printc(c0, d); return nil
-        case .NominalTypeDescriptorRecord: emit("nominal type descriptor runtime record for "); printc(c0, d); return nil
-        case .OpaqueTypeDescriptor: emit("opaque type descriptor for "); printc(c0, d); return nil
-        case .OpaqueTypeDescriptorRecord: emit("opaque type descriptor runtime record for "); printc(c0, d); return nil
-        case .OpaqueTypeDescriptorAccessor: emit("opaque type descriptor accessor for "); printc(c0, d); return nil
-        case .OpaqueTypeDescriptorAccessorImpl: emit("opaque type descriptor accessor impl for "); printc(c0, d); return nil
-        case .OpaqueTypeDescriptorAccessorKey: emit("opaque type descriptor accessor key for "); printc(c0, d); return nil
-        case .OpaqueTypeDescriptorAccessorVar: emit("opaque type descriptor accessor var for "); printc(c0, d); return nil
-        case .CoroutineContinuationPrototype: emit("coroutine continuation prototype for "); printc(c0, d); return nil
+            emit(" in "); printFirst(node, d); return nil
+        case .ClassMetadataBaseOffset: emit("class metadata base offset for "); printFirst(node, d); return nil
+        case .PropertyDescriptor: emit("property descriptor for "); printFirst(node, d); return nil
+        case .NominalTypeDescriptor: emit("nominal type descriptor for "); printFirst(node, d); return nil
+        case .NominalTypeDescriptorRecord: emit("nominal type descriptor runtime record for "); printFirst(node, d); return nil
+        case .OpaqueTypeDescriptor: emit("opaque type descriptor for "); printFirst(node, d); return nil
+        case .OpaqueTypeDescriptorRecord: emit("opaque type descriptor runtime record for "); printFirst(node, d); return nil
+        case .OpaqueTypeDescriptorAccessor: emit("opaque type descriptor accessor for "); printFirst(node, d); return nil
+        case .OpaqueTypeDescriptorAccessorImpl: emit("opaque type descriptor accessor impl for "); printFirst(node, d); return nil
+        case .OpaqueTypeDescriptorAccessorKey: emit("opaque type descriptor accessor key for "); printFirst(node, d); return nil
+        case .OpaqueTypeDescriptorAccessorVar: emit("opaque type descriptor accessor var for "); printFirst(node, d); return nil
+        case .CoroutineContinuationPrototype: emit("coroutine continuation prototype for "); printFirst(node, d); return nil
         case .ValueWitness:
-            emit(ValueWitnessKinds.name(forIndex: Int(c0.flatMap { nb.index(of: $0) } ?? 0)) ?? "")
+            emitDynamic(ValueWitnessKinds.name(forIndex: Int(nb.firstChild(of: node).flatMap { nb.index(of: $0) } ?? 0)) ?? "")
             emit(options.shortenValueWitness ? " for " : " value witness for ")
             if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
-        case .ValueWitnessTable: emit("value witness table for "); printc(c0, d); return nil
+        case .ValueWitnessTable: emit("value witness table for "); printFirst(node, d); return nil
         case .BoundGenericClass, .BoundGenericStructure, .BoundGenericEnum, .BoundGenericProtocol,
              .BoundGenericOtherNominalType, .BoundGenericTypeAlias:
             printBoundGeneric(node, depth: depth); return nil
         case .DynamicSelf: emit("Self"); return nil
-        case .SILBoxType: emit("@box "); printc(c0, d); return nil
+        case .SILBoxType: emit("@box "); printFirst(node, d); return nil
         case .Metatype:
             var idx = 0
             if nb.childCount(of: node) == 2 { _ = print(nb.child(of: node, at: 0), depth: d); emit(" "); idx = 1 }
@@ -423,7 +422,7 @@ extension NodePrinter {
             }
             return nil
         case .ConstrainedExistential:
-            emit("any "); printc(c0, d); emit("<"); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(">"); return nil
+            emit("any "); printFirst(node, d); emit("<"); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(">"); return nil
         case .ConstrainedExistentialRequirementList: printChildren(node, depth: depth, separator: ", "); return nil
         case .ExistentialMetatype:
             var idx = 0
@@ -433,9 +432,9 @@ extension NodePrinter {
         case .ConstrainedExistentialSelf: emit("Self"); return nil
         case .MetatypeRepresentation: emitText(of: node); return nil
         case .AssociatedTypeRef:
-            printc(c0, d); emit("."); if let c1 = child(node, 1) { emitText(of: c1) }; return nil
+            printFirst(node, d); emit("."); if let c1 = child(node, 1) { emitText(of: c1) }; return nil
         case .ProtocolList:
-            guard let list = c0 else { return nil }
+            guard let list = nb.firstChild(of: node) else { return nil }
             if nb.childCount(of: list) == 0 { emit("Any") } else { printChildren(list, depth: depth, separator: " & ") }
             return nil
         case .ProtocolListWithClass:
@@ -444,9 +443,9 @@ extension NodePrinter {
             guard let list = nb.firstChild(of: nb.child(of: node, at: 0)) else { return nil }
             printChildren(list, depth: depth, separator: " & "); return nil
         case .ProtocolListWithAnyObject:
-            guard let protos = c0, let list = nb.firstChild(of: protos) else { return nil }
+            guard let protos = nb.firstChild(of: node), let list = nb.firstChild(of: protos) else { return nil }
             if nb.childCount(of: list) != 0 { printChildren(list, depth: depth, separator: " & "); emit(" & ") }
-            if options.qualifyEntities, options.displayStdlibModule { emit(SwiftManglingConstants.stdlibName); emit(".") }
+            if options.qualifyEntities, options.displayStdlibModule { emitDynamic(SwiftManglingConstants.stdlibName); emit(".") }
             emit("AnyObject"); return nil
         case .AssociatedType: return nil
         case .OwningAddressor: return printAccessor(node, "owningAddressor", depth, asPrefixContext)
@@ -472,7 +471,7 @@ extension NodePrinter {
         case .MutateAccessor: return printAccessor(node, "mutate", depth, asPrefixContext)
         case .Allocator:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .functionStyle, hasName: false,
-                               extraName: (c0.map { isClassType($0) } ?? false) ? "__allocating_init" : "init")
+                               extraName: (nb.firstChild(of: node).map { isClassType($0) } ?? false) ? "__allocating_init" : "init")
         case .Constructor:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .functionStyle,
                                hasName: nb.childCount(of: node) > 2, extraName: "init")
@@ -480,10 +479,10 @@ extension NodePrinter {
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: false, extraName: "deinit")
         case .Deallocator:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: false,
-                               extraName: (c0.map { isClassType($0) } ?? false) ? "__deallocating_deinit" : "deinit")
+                               extraName: (nb.firstChild(of: node).map { isClassType($0) } ?? false) ? "__deallocating_deinit" : "deinit")
         case .IsolatedDeallocator:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: false,
-                               extraName: (c0.map { isClassType($0) } ?? false) ? "__isolated_deallocating_deinit" : "deinit")
+                               extraName: (nb.firstChild(of: node).map { isClassType($0) } ?? false) ? "__isolated_deallocating_deinit" : "deinit")
         case .IVarInitializer:
             return printEntity(node, depth: depth, asPrefixContext: asPrefixContext, type: .noType, hasName: false, extraName: "__ivar_initializer")
         case .IVarDestroyer:
@@ -501,63 +500,63 @@ extension NodePrinter {
         case .ImplNonisolatedNonsendingIsolation: emit("@caller_isolated"); return nil
         case .ImplErasedIsolation: emit("@isolated(any)"); return nil
         case .ImplCoroutineKind:
-            if let t = nb.text(of: node), !t.isEmpty { emit("@"); emit(t) }; return nil
+            if let t = nb.text(of: node), !t.isEmpty { emit("@"); emitDynamic(t) }; return nil
         case .ImplSendingResult: emit("sending"); return nil
         case .ImplConvention: emitText(of: node); return nil
         case .ImplParameterResultDifferentiability, .ImplParameterSending, .ImplParameterIsolated, .ImplParameterImplicitLeading:
-            if let t = nb.text(of: node), !t.isEmpty { emit(t); emit(" ") }; return nil
+            if let t = nb.text(of: node), !t.isEmpty { emitDynamic(t); emit(" ") }; return nil
         case .ImplFunctionAttribute: emitText(of: node); return nil
         case .ImplFunctionConvention:
             emit("@convention(")
-            if nb.childCount(of: node) == 1 { if let c = c0 { emitText(of: c) } }
-            else if nb.childCount(of: node) == 2 { if let c = c0 { emitText(of: c) }; emit(", mangledCType: \""); _ = print(nb.child(of: node, at: 1), depth: d); emit("\"") }
+            if nb.childCount(of: node) == 1 { if let c = nb.firstChild(of: node) { emitText(of: c) } }
+            else if nb.childCount(of: node) == 2 { if let c = nb.firstChild(of: node) { emitText(of: c) }; emit(", mangledCType: \""); _ = print(nb.child(of: node, at: 1), depth: d); emit("\"") }
             emit(")"); return nil
         case .ImplFunctionConventionName: return nil
         case .ImplErrorResult: emit("@error "); printChildren(node, depth: depth, separator: " "); return nil
         case .ImplYield: emit("@yields "); printChildren(node, depth: depth, separator: " "); return nil
         case .ImplParameter, .ImplResult:
-            printc(c0, d); emit(" ")
+            printFirst(node, d); emit(" ")
             if nb.childCount(of: node) == 3 { if let c1 = child(node, 1) { _ = print(c1, depth: d) } }
             if nb.childCount(of: node) == 4 { if let c1 = child(node, 1) { _ = print(c1, depth: d) }; if let c2 = child(node, 2) { _ = print(c2, depth: d) } }
             if let last = nb.lastChild(of: node) { _ = print(last, depth: d) }
             return nil
         case .ImplFunctionType: printImplFunctionType(node, depth: depth); return nil
         case .ImplInvocationSubstitutions:
-            emit("for <"); if let c = c0 { printChildren(c, depth: depth, separator: ", ") }; emit(">"); return nil
+            emit("for <"); if let c = nb.firstChild(of: node) { printChildren(c, depth: depth, separator: ", ") }; emit(">"); return nil
         case .ImplPatternSubstitutions:
-            emit("@substituted "); printc(c0, d); emit(" for <")
+            emit("@substituted "); printFirst(node, d); emit(" for <")
             if let c1 = child(node, 1) { printChildren(c1, depth: depth, separator: ", ") }; emit(">"); return nil
         case .ErrorType: emit("<ERROR TYPE>"); return nil
         case .DependentPseudogenericSignature, .DependentGenericSignature: printGenericSignature(node, depth: depth); return nil
         case .DependentGenericConformanceRequirement:
-            printc(c0, d); emit(": "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit(": "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .DependentGenericInverseConformanceRequirement:
-            printc(c0, d); emit(": ~")
+            printFirst(node, d); emit(": ~")
             switch child(node, 1).flatMap({ nb.index(of: $0) }) {
             case 0: emit("Swift.Copyable"); case 1: emit("Swift.Escapable")
-            default: emit("Swift.<bit \(child(node, 1).flatMap { nb.index(of: $0) } ?? 0)>")
+            default: emitDynamic("Swift.<bit \(child(node, 1).flatMap { nb.index(of: $0) } ?? 0)>")
             }
             return nil
         case .DependentGenericLayoutRequirement: printLayoutRequirement(node, depth: depth); return nil
         case .DependentGenericSameTypeRequirement:
-            printc(c0, d); emit(" == "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit(" == "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .DependentGenericSameShapeRequirement:
-            printc(c0, d); emit(".shape == "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(".shape"); return nil
+            printFirst(node, d); emit(".shape == "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit(".shape"); return nil
         case .DependentGenericParamType:
-            emit(options.genericParameterName(depth: c0.flatMap { nb.index(of: $0) } ?? 0, index: child(node, 1).flatMap { nb.index(of: $0) } ?? 0)); return nil
+            emitDynamic(options.genericParameterName(depth: nb.firstChild(of: node).flatMap { nb.index(of: $0) } ?? 0, index: child(node, 1).flatMap { nb.index(of: $0) } ?? 0)); return nil
         case .DependentGenericType:
-            printc(c0, d)
+            printFirst(node, d)
             if let depTy = child(node, 1) { if needSpaceBeforeType(depTy) { emit(" ") }; _ = print(depTy, depth: d) }
             return nil
         case .DependentMemberType:
-            printc(c0, d); emit("."); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit("."); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .DependentAssociatedTypeRef:
             if nb.childCount(of: node) > 1 { _ = print(nb.child(of: node, at: 1), depth: d); emit(".") }
-            printc(c0, d); return nil
-        case .ReflectionMetadataBuiltinDescriptor: emit("reflection metadata builtin descriptor "); printc(c0, d); return nil
-        case .ReflectionMetadataFieldDescriptor: emit("reflection metadata field descriptor "); printc(c0, d); return nil
-        case .ReflectionMetadataAssocTypeDescriptor: emit("reflection metadata associated type descriptor "); printc(c0, d); return nil
-        case .ReflectionMetadataSuperclassDescriptor: emit("reflection metadata superclass descriptor "); printc(c0, d); return nil
+            printFirst(node, d); return nil
+        case .ReflectionMetadataBuiltinDescriptor: emit("reflection metadata builtin descriptor "); printFirst(node, d); return nil
+        case .ReflectionMetadataFieldDescriptor: emit("reflection metadata field descriptor "); printFirst(node, d); return nil
+        case .ReflectionMetadataAssocTypeDescriptor: emit("reflection metadata associated type descriptor "); printFirst(node, d); return nil
+        case .ReflectionMetadataSuperclassDescriptor: emit("reflection metadata superclass descriptor "); printFirst(node, d); return nil
         case .ConcurrentFunctionType: emit("@Sendable "); return nil
         case .DifferentiableFunctionType:
             emit("@differentiable")
@@ -566,14 +565,14 @@ extension NodePrinter {
             }
             emit(" "); return nil
         case .GlobalActorFunctionType:
-            if let c = c0 { emit("@"); _ = print(c, depth: d); emit(" ") }; return nil
+            if let c = nb.firstChild(of: node) { emit("@"); _ = print(c, depth: d); emit(" ") }; return nil
         case .IsolatedAnyFunctionType: emit("@isolated(any) "); return nil
         case .NonIsolatedCallerFunctionType: emit("nonisolated(nonsending) "); return nil
         case .SendingResultFunctionType: emit("sending "); return nil
         case .AsyncAnnotation: emit(" async"); return nil
         case .ThrowsAnnotation: emit(" throws"); return nil
         case .TypedThrowsAnnotation:
-            emit(" throws("); if nb.childCount(of: node) == 1 { printc(c0, d) }; emit(")"); return nil
+            emit(" throws("); if nb.childCount(of: node) == 1 { printFirst(node, d) }; emit(")"); return nil
         case .EmptyList: emit(" empty-list "); return nil
         case .FirstElementMarker: emit(" first-element-marker "); return nil
         case .VariadicMarker: emit(" variadic-marker "); return nil
@@ -585,11 +584,11 @@ extension NodePrinter {
             }
             emit(" }"); return nil
         case .SILBoxImmutableField, .SILBoxMutableField:
-            emit(nb.kind(of: node) == .SILBoxImmutableField ? "let " : "var "); printc(c0, d); return nil
+            emit(nb.kind(of: node) == .SILBoxImmutableField ? "let " : "var "); printFirst(node, d); return nil
         case .AssocTypePath: printChildren(node, depth: depth, separator: "."); return nil
-        case .ModuleDescriptor: emit("module descriptor "); printc(c0, d); return nil
-        case .AnonymousDescriptor: emit("anonymous descriptor "); printc(c0, d); return nil
-        case .ExtensionDescriptor: emit("extension descriptor "); printc(c0, d); return nil
+        case .ModuleDescriptor: emit("module descriptor "); printFirst(node, d); return nil
+        case .AnonymousDescriptor: emit("anonymous descriptor "); printFirst(node, d); return nil
+        case .ExtensionDescriptor: emit("extension descriptor "); printFirst(node, d); return nil
         case .AssociatedTypeGenericParamRef: emit("generic parameter reference for associated type "); printChildren(node, depth: depth); return nil
         case .AnyProtocolConformanceList:
             if nb.childCount(of: node) != 0 {
@@ -602,8 +601,8 @@ extension NodePrinter {
             return nil
         case .ConcreteProtocolConformance:
             emit("concrete protocol conformance ")
-            if let i = nb.index(of: node) { emit("#\(i) ") }
-            printc(c0, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
+            if let i = nb.index(of: node) { emit("#"); emit(i); emit(" ") }
+            printFirst(node, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
             if nb.childCount(of: node) > 2, nb.childCount(of: nb.child(of: node, at: 2)) != 0 {
                 emit(" with conditional requirements: "); _ = print(nb.child(of: node, at: 2), depth: d)
             }
@@ -612,42 +611,42 @@ extension NodePrinter {
         case .DependentAssociatedConformance: emit("dependent associated conformance "); printChildren(node, depth: depth); return nil
         case .DependentProtocolConformanceAssociated:
             emit("dependent associated protocol conformance "); if let c2 = child(node, 2) { printOptionalIndex(c2) }
-            printc(c0, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .DependentProtocolConformanceInherited:
             emit("dependent inherited protocol conformance "); if let c2 = child(node, 2) { printOptionalIndex(c2) }
-            printc(c0, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .DependentProtocolConformanceRoot:
             emit("dependent root protocol conformance "); if let c2 = child(node, 2) { printOptionalIndex(c2) }
-            printc(c0, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            printFirst(node, d); emit(" to "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .DependentProtocolConformanceOpaque:
-            emit("opaque result conformance "); printc(c0, d); emit(" of "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+            emit("opaque result conformance "); printFirst(node, d); emit(" of "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
         case .ProtocolConformanceRefInTypeModule: emit("protocol conformance ref (type's module) "); printChildren(node, depth: depth); return nil
         case .ProtocolConformanceRefInProtocolModule: emit("protocol conformance ref (protocol's module) "); printChildren(node, depth: depth); return nil
         case .ProtocolConformanceRefInOtherModule: emit("protocol conformance ref (retroactive) "); printChildren(node, depth: depth); return nil
-        case .SugaredOptional: printWithParens(c0 ?? node, depth: depth); emit("?"); return nil
-        case .SugaredArray: emit("["); printc(c0, d); emit("]"); return nil
+        case .SugaredOptional: printWithParens(nb.firstChild(of: node) ?? node, depth: depth); emit("?"); return nil
+        case .SugaredArray: emit("["); printFirst(node, d); emit("]"); return nil
         case .SugaredInlineArray:
-            emit("["); printc(c0, d); emit(" of "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit("]"); return nil
+            emit("["); printFirst(node, d); emit(" of "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit("]"); return nil
         case .SugaredDictionary:
-            emit("["); printc(c0, d); emit(" : "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit("]"); return nil
-        case .SugaredParen: emit("("); printc(c0, d); emit(")"); return nil
+            emit("["); printFirst(node, d); emit(" : "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; emit("]"); return nil
+        case .SugaredParen: emit("("); printFirst(node, d); emit(")"); return nil
         case .OpaqueReturnType: emit("some"); return nil
         case .OpaqueReturnTypeOf: emit("<<opaque return type of "); printChildren(node, depth: depth); emit(">>"); return nil
         case .OpaqueType:
-            printc(c0, d); emit("."); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
-        case .AccessorFunctionReference: emit("accessor function at \(nb.index(of: node) ?? 0)"); return nil
-        case .CanonicalSpecializedGenericMetaclass: emit("specialized generic metaclass for "); printc(c0, d); return nil
-        case .CanonicalSpecializedGenericTypeMetadataAccessFunction: emit("canonical specialized generic type metadata accessor for "); printc(c0, d); return nil
-        case .MetadataInstantiationCache: emit("metadata instantiation cache for "); printc(c0, d); return nil
-        case .NoncanonicalSpecializedGenericTypeMetadata: emit("noncanonical specialized generic type metadata for "); printc(c0, d); return nil
-        case .NoncanonicalSpecializedGenericTypeMetadataCache: emit("cache variable for noncanonical specialized generic type metadata for "); printc(c0, d); return nil
+            printFirst(node, d); emit("."); if let c1 = child(node, 1) { _ = print(c1, depth: d) }; return nil
+        case .AccessorFunctionReference: emit("accessor function at "); emit(nb.index(of: node) ?? 0); return nil
+        case .CanonicalSpecializedGenericMetaclass: emit("specialized generic metaclass for "); printFirst(node, d); return nil
+        case .CanonicalSpecializedGenericTypeMetadataAccessFunction: emit("canonical specialized generic type metadata accessor for "); printFirst(node, d); return nil
+        case .MetadataInstantiationCache: emit("metadata instantiation cache for "); printFirst(node, d); return nil
+        case .NoncanonicalSpecializedGenericTypeMetadata: emit("noncanonical specialized generic type metadata for "); printFirst(node, d); return nil
+        case .NoncanonicalSpecializedGenericTypeMetadataCache: emit("cache variable for noncanonical specialized generic type metadata for "); printFirst(node, d); return nil
         case .GlobalVariableOnceToken, .GlobalVariableOnceFunction:
             emit(nb.kind(of: node) == .GlobalVariableOnceToken ? "one-time initialization token for " : "one-time initialization function for ")
-            if let c = c0 { _ = printContext(c) }
+            if let c = nb.firstChild(of: node) { _ = printContext(c) }
             if let c1 = child(node, 1) { _ = print(c1, depth: d) }
             return nil
         case .GlobalVariableOnceDeclList:
-            if nb.childCount(of: node) == 1 { printc(c0, d) }
+            if nb.childCount(of: node) == 1 { printFirst(node, d) }
             else {
                 emit("(")
                 for i in 0 ..< nb.childCount(of: node) {
@@ -661,7 +660,7 @@ extension NodePrinter {
             if nb.kind(of: node) == .PredefinedObjCAsyncCompletionHandlerImpl { emit("predefined ") }
             emit("@objc completion handler block implementation for ")
             if nb.childCount(of: node) >= 4 { _ = print(nb.child(of: node, at: 3), depth: d) }
-            printc(c0, d); emit(" with result type "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
+            printFirst(node, d); emit(" with result type "); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
             switch child(node, 2).flatMap({ nb.index(of: $0) }) {
             case 0: break
             case 1: emit(" nonzero on error")
@@ -670,27 +669,27 @@ extension NodePrinter {
             }
             return nil
         case .CanonicalPrespecializedGenericTypeCachingOnceToken:
-            emit("flag for loading of canonical specialized generic type metadata for "); printc(c0, d); return nil
+            emit("flag for loading of canonical specialized generic type metadata for "); printFirst(node, d); return nil
         case .AsyncFunctionPointer: emit("async function pointer to "); return nil
         case .AsyncAwaitResumePartialFunction:
-            if options.showAsyncResumePartial { emit("("); printc(c0, d); emit(")"); emit(" await resume partial function for ") }; return nil
+            if options.showAsyncResumePartial { emit("("); printFirst(node, d); emit(")"); emit(" await resume partial function for ") }; return nil
         case .AsyncSuspendResumePartialFunction:
-            if options.showAsyncResumePartial { emit("("); printc(c0, d); emit(")"); emit(" suspend resume partial function for ") }; return nil
-        case .Uniquable: emit("uniquable "); printc(c0, d); return nil
+            if options.showAsyncResumePartial { emit("("); printFirst(node, d); emit(")"); emit(" suspend resume partial function for ") }; return nil
+        case .Uniquable: emit("uniquable "); printFirst(node, d); return nil
         case .ExtendedExistentialTypeShape: printExtendedExistentialTypeShape(node, depth: depth); return nil
         case .UniqueExtendedExistentialTypeShapeSymbolicReference: emit("unique existential shape symbolic reference 0x"); emitHex(nb.index(of: node) ?? 0); return nil
         case .NonUniqueExtendedExistentialTypeShapeSymbolicReference: emit("non-unique existential shape symbolic reference 0x"); emitHex(nb.index(of: node) ?? 0); return nil
         case .ObjectiveCProtocolSymbolicReference: emit("objective-c protocol symbolic reference 0x"); emitHex(nb.index(of: node) ?? 0); return nil
         case .SymbolicExtendedExistentialType:
-            let isUnique = c0.map { nb.kind(of: $0) } == .UniqueExtendedExistentialTypeShapeSymbolicReference
-            emit("symbolic existential type (\(isUnique ? "" : "non-")unique) 0x"); emitHex(c0.flatMap { nb.index(of: $0) } ?? 0)
+            let isUnique = nb.firstChild(of: node).map { nb.kind(of: $0) } == .UniqueExtendedExistentialTypeShapeSymbolicReference
+            emitDynamic("symbolic existential type (\(isUnique ? "" : "non-")unique) 0x"); emitHex(nb.firstChild(of: node).flatMap { nb.index(of: $0) } ?? 0)
             emit(" <"); if let c1 = child(node, 1) { _ = print(c1, depth: d) }
             if nb.childCount(of: node) > 2 { emit(", "); _ = print(nb.child(of: node, at: 2), depth: d) }
             emit(">"); return nil
         case .HasSymbolQuery: emit("#_hasSymbol query for "); return nil
         case .OpaqueReturnTypeIndex, .OpaqueReturnTypeParent: return nil
         case .Integer: emit(nb.index(of: node) ?? 0); return nil
-        case .NegativeInteger: emit(String(Int(bitPattern: UInt(nb.index(of: node) ?? 0)))); return nil
+        case .NegativeInteger: emitDynamic(String(Int(bitPattern: UInt(nb.index(of: node) ?? 0)))); return nil
         case .CoroFunctionPointer: emit("coro function pointer to "); return nil
         case .DefaultOverride: emit("default override of "); return nil
         default:
@@ -700,12 +699,22 @@ extension NodePrinter {
 
     // MARK: small dispatch helpers
 
-    @inline(__always) private mutating func printc(_ node: B.Node?, _ depth: Int) {
-        if let node { _ = print(node, depth: depth) }
+    /// Print child 0 if there is one.
+    ///
+    /// This replaces a `let c0 = nb.firstChild(of: node)` taken at the top of
+    /// every `print` call and read by 140 of its ~200 arms: the other sixty
+    /// paid for it too. `firstChild(of:)` hands back an OWNED `B.Node?` — for
+    /// the value backend a retain of the child's `children` array and its
+    /// `Contents` string, plus the matching releases — on every node printed
+    /// whether or not the arm that ran wanted it. Fetching inside the arm pays
+    /// only where the child is actually used, and the arena backend (a trivial
+    /// `Int32` handle) is unaffected either way.
+    @inline(__always) private mutating func printFirst(_ node: B.Node, _ depth: Int) {
+        if nb.childCount(of: node) > 0 { _ = print(nb.child(of: node, at: 0), depth: depth) }
     }
 
     private mutating func emitHex(_ n: UInt64) {
-        emit(String(n, radix: 16, uppercase: true))
+        emitDynamic(String(n, radix: 16, uppercase: true))
     }
 
     private mutating func printAccessor(_ node: B.Node, _ extraName: String, _ depth: Int, _ asPrefixContext: Bool) -> B.Node? {

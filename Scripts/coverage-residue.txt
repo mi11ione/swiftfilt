@@ -96,11 +96,34 @@
 # spills through the grammar — the arm exists so any future collector site
 # grows instead of overrunning, the same defensive-growth class as the
 # node/substitution spill (which deep symbols do reach).
-Sources/SwiftFilt/ArenaDemangling.swift 101:43-101:57
+#
+# Coordinates regenerated 2026-08-06 (the Aperture 3.2 transfer): the printer's
+# `emit(StaticString)`/`emitDynamic` split, the `printFirst` change that stopped
+# hoisting child 0 on every `print` arm, the first-byte mangling-prefix dispatch,
+# the standard-substitution byte switch, and the byte-buffer `treeDump` shifted
+# lines and columns across the engine. Every row was re-paired against its
+# source region MECHANICALLY: a full llvm-cov region export was taken on a
+# pristine HEAD checkout and on this tree, and each ledger coordinate was mapped
+# to the current region carrying the identical region text AND identical
+# enclosing source lines (modulo the mechanical `emit` -> `emitDynamic` rename),
+# by ordinal within the file. 285 rows kept their coordinates, 38 were remapped
+# that way, and 4 in NodePrinterDispatch.swift whose ENCLOSING line this change
+# rewrote were paired by inspection — the three `c0` guards that now read
+# `nb.firstChild(of: node)` (437, 446, 626) and the `#index ` render at 604,
+# which became three `emit`s instead of one interpolation. One stale row was
+# DROPPED: Product/MangledNameScanner.swift 279:22-280:18 names a region llvm-cov
+# emits in neither export, in a file this change does not touch.
+Sources/SwiftFilt/ArenaBuilder.swift 307:47-307:57
 Sources/SwiftFilt/ArenaBuilder.swift 545:41-545:66
+Sources/SwiftFilt/ArenaBuilder.swift 604:55-604:65
+Sources/SwiftFilt/ArenaBuilder.swift 606:33-609:10
+Sources/SwiftFilt/ArenaBuilder.swift 675:44-675:46
+Sources/SwiftFilt/ArenaDemangling.swift 101:43-101:57
 Sources/SwiftFilt/Demangler.swift 169:61-169:63
-Sources/SwiftFilt/Demangler.swift 362:84-362:88
-Sources/SwiftFilt/Demangler.swift 424:32-424:47
+Sources/SwiftFilt/Demangler.swift 351:84-351:88
+Sources/SwiftFilt/Demangler.swift 370:41-370:55
+Sources/SwiftFilt/Demangler.swift 390:39-390:53
+Sources/SwiftFilt/Demangler.swift 413:32-413:47
 Sources/SwiftFilt/DemanglerEntities.swift 135:28-135:84
 Sources/SwiftFilt/DemanglerEntities.swift 224:132-224:146
 Sources/SwiftFilt/DemanglerEntities.swift 225:125-225:139
@@ -110,6 +133,7 @@ Sources/SwiftFilt/DemanglerEntities.swift 284:58-284:72
 Sources/SwiftFilt/DemanglerEntities.swift 287:58-287:72
 Sources/SwiftFilt/DemanglerEntities.swift 290:58-290:72
 Sources/SwiftFilt/DemanglerEntities.swift 314:48-314:62
+Sources/SwiftFilt/DemanglerImplArchetype.swift 88:26-88:66
 Sources/SwiftFilt/DemanglerImplArchetype.swift 277:58-277:72
 Sources/SwiftFilt/DemanglerImplArchetype.swift 294:68-294:82
 Sources/SwiftFilt/DemanglerImplArchetype.swift 349:48-349:53
@@ -121,9 +145,10 @@ Sources/SwiftFilt/DemanglerImplArchetype.swift 457:51-457:65
 Sources/SwiftFilt/DemanglerImplArchetype.swift 461:58-461:72
 Sources/SwiftFilt/DemanglerImplArchetype.swift 465:65-465:79
 Sources/SwiftFilt/DemanglerImplArchetype.swift 466:50-466:59
-Sources/SwiftFilt/DemanglerImplArchetype.swift 88:26-88:66
 Sources/SwiftFilt/DemanglerPredicates.swift 170:60-170:76
 Sources/SwiftFilt/DemanglerPredicates.swift 183:60-183:76
+Sources/SwiftFilt/DemanglerSpecializations.swift 38:13-38:32
+Sources/SwiftFilt/DemanglerSpecializations.swift 68:24-68:54
 Sources/SwiftFilt/DemanglerSpecializations.swift 174:71-174:85
 Sources/SwiftFilt/DemanglerSpecializations.swift 185:49-185:63
 Sources/SwiftFilt/DemanglerSpecializations.swift 190:16-192:10
@@ -142,7 +167,6 @@ Sources/SwiftFilt/DemanglerSpecializations.swift 359:49-359:63
 Sources/SwiftFilt/DemanglerSpecializations.swift 361:112-361:126
 Sources/SwiftFilt/DemanglerSpecializations.swift 377:9-377:68
 Sources/SwiftFilt/DemanglerSpecializations.swift 379:9-379:28
-Sources/SwiftFilt/DemanglerSpecializations.swift 38:13-38:32
 Sources/SwiftFilt/DemanglerSpecializations.swift 433:103-433:105
 Sources/SwiftFilt/DemanglerSpecializations.swift 454:31-454:45
 Sources/SwiftFilt/DemanglerSpecializations.swift 516:97-516:111
@@ -152,8 +176,8 @@ Sources/SwiftFilt/DemanglerSpecializations.swift 535:10-536:6
 Sources/SwiftFilt/DemanglerSpecializations.swift 544:24-544:40
 Sources/SwiftFilt/DemanglerSpecializations.swift 656:81-656:95
 Sources/SwiftFilt/DemanglerSpecializations.swift 662:47-662:61
-Sources/SwiftFilt/DemanglerSpecializations.swift 68:24-68:54
 Sources/SwiftFilt/DemanglerSubstitutions.swift 31:32-31:46
+Sources/SwiftFilt/DemanglerSubstitutions.swift 32:10-33:6
 Sources/SwiftFilt/DemanglerTypes.swift 128:80-128:96
 Sources/SwiftFilt/DemanglerTypes.swift 134:31-134:47
 Sources/SwiftFilt/DemanglerTypes.swift 146:73-147:64
@@ -164,6 +188,7 @@ Sources/SwiftFilt/DemanglerTypes.swift 224:118-224:132
 Sources/SwiftFilt/DemanglerTypes.swift 246:94-246:116
 Sources/SwiftFilt/DemanglerTypes.swift 249:64-249:78
 Sources/SwiftFilt/DemanglerTypes.swift 253:14-253:28
+Sources/SwiftFilt/DemanglerTypes.swift 254:85-254:86
 Sources/SwiftFilt/DemanglerTypes.swift 267:103-267:117
 Sources/SwiftFilt/DemanglerTypes.swift 271:23-271:59
 Sources/SwiftFilt/DemanglerTypes.swift 357:63-357:82
@@ -181,24 +206,36 @@ Sources/SwiftFilt/DemanglerTypes.swift 582:9-583:23
 Sources/SwiftFilt/DemanglerTypes.swift 668:42-668:56
 Sources/SwiftFilt/DemanglerTypes.swift 671:14-671:28
 Sources/SwiftFilt/DemanglerTypes.swift 672:55-674:10
+Sources/SwiftFilt/EngineStacks.swift 152:27-152:73
+Sources/SwiftFilt/EngineStacks.swift 172:32-175:10
+Sources/SwiftFilt/EngineStacks.swift 280:44-280:121
+Sources/SwiftFilt/NodeBuilder.swift 280:36-283:10
+Sources/SwiftFilt/NodeBuilder.swift 281:33-281:41
+Sources/SwiftFilt/NodeBuilder.swift 298:36-301:10
+Sources/SwiftFilt/NodeBuilder.swift 313:36-316:10
 Sources/SwiftFilt/NodeBuilder.swift 367:30-367:32
-Sources/SwiftFilt/NodePrinterDispatch.swift 184:45-184:67
-Sources/SwiftFilt/NodePrinterDispatch.swift 223:46-223:55
-Sources/SwiftFilt/NodePrinterDispatch.swift 285:51-285:115
-Sources/SwiftFilt/NodePrinterDispatch.swift 438:38-438:52
-Sources/SwiftFilt/NodePrinterDispatch.swift 442:53-442:67
-Sources/SwiftFilt/NodePrinterDispatch.swift 444:80-444:94
-Sources/SwiftFilt/NodePrinterDispatch.swift 447:78-447:92
-Sources/SwiftFilt/NodePrinterDispatch.swift 605:43-605:61
-Sources/SwiftFilt/NodePrinterDispatch.swift 627:54-627:58
-Sources/SwiftFilt/NodePrinterDispatch.swift 663:45-663:95
-Sources/SwiftFilt/NodePrinterDispatch.swift 726:9-726:20
-Sources/SwiftFilt/NodePrinterDispatch.swift 90:92-90:94
+Sources/SwiftFilt/NodeBuilder.swift 397:38-397:72
+Sources/SwiftFilt/NodeBuilder.swift 399:33-403:10
+Sources/SwiftFilt/NodeBuilder.swift 409:38-409:72
+Sources/SwiftFilt/NodeBuilder.swift 411:33-415:10
+Sources/SwiftFilt/NodePrinterDispatch.swift 89:92-89:94
+Sources/SwiftFilt/NodePrinterDispatch.swift 183:45-183:67
+Sources/SwiftFilt/NodePrinterDispatch.swift 222:53-222:62
+Sources/SwiftFilt/NodePrinterDispatch.swift 284:51-284:115
+Sources/SwiftFilt/NodePrinterDispatch.swift 437:59-437:73
+Sources/SwiftFilt/NodePrinterDispatch.swift 441:53-441:67
+Sources/SwiftFilt/NodePrinterDispatch.swift 443:80-443:94
+Sources/SwiftFilt/NodePrinterDispatch.swift 446:99-446:113
+Sources/SwiftFilt/NodePrinterDispatch.swift 604:43-604:76
+Sources/SwiftFilt/NodePrinterDispatch.swift 626:75-626:79
+Sources/SwiftFilt/NodePrinterDispatch.swift 662:45-662:95
+Sources/SwiftFilt/NodePrinterDispatch.swift 735:9-735:20
+Sources/SwiftFilt/NodePrinterEntities.swift 18:40-18:64
+Sources/SwiftFilt/NodePrinterEntities.swift 49:96-49:97
 Sources/SwiftFilt/NodePrinterEntities.swift 124:72-124:73
 Sources/SwiftFilt/NodePrinterEntities.swift 133:61-133:73
 Sources/SwiftFilt/NodePrinterEntities.swift 135:132-135:144
 Sources/SwiftFilt/NodePrinterEntities.swift 149:157-150:14
-Sources/SwiftFilt/NodePrinterEntities.swift 18:40-18:64
 Sources/SwiftFilt/NodePrinterEntities.swift 257:34-257:44
 Sources/SwiftFilt/NodePrinterEntities.swift 261:34-261:44
 Sources/SwiftFilt/NodePrinterEntities.swift 272:13-274:102
@@ -206,13 +243,13 @@ Sources/SwiftFilt/NodePrinterEntities.swift 276:34-276:44
 Sources/SwiftFilt/NodePrinterEntities.swift 282:50-282:59
 Sources/SwiftFilt/NodePrinterEntities.swift 284:103-284:117
 Sources/SwiftFilt/NodePrinterEntities.swift 288:34-288:44
-Sources/SwiftFilt/NodePrinterEntities.swift 311:13-314:45
+Sources/SwiftFilt/NodePrinterEntities.swift 311:13-314:52
 Sources/SwiftFilt/NodePrinterEntities.swift 312:58-312:68
-Sources/SwiftFilt/NodePrinterEntities.swift 312:68-314:45
-Sources/SwiftFilt/NodePrinterEntities.swift 314:35-314:39
-Sources/SwiftFilt/NodePrinterEntities.swift 314:42-314:44
+Sources/SwiftFilt/NodePrinterEntities.swift 312:68-314:52
+Sources/SwiftFilt/NodePrinterEntities.swift 314:42-314:46
+Sources/SwiftFilt/NodePrinterEntities.swift 314:49-314:51
 Sources/SwiftFilt/NodePrinterEntities.swift 321:71-321:73
-Sources/SwiftFilt/NodePrinterEntities.swift 322:58-322:60
+Sources/SwiftFilt/NodePrinterEntities.swift 322:65-322:67
 Sources/SwiftFilt/NodePrinterEntities.swift 349:9-349:52
 Sources/SwiftFilt/NodePrinterEntities.swift 352:9-352:23
 Sources/SwiftFilt/NodePrinterEntities.swift 373:17-373:37
@@ -220,26 +257,26 @@ Sources/SwiftFilt/NodePrinterEntities.swift 375:70-375:78
 Sources/SwiftFilt/NodePrinterEntities.swift 431:49-431:59
 Sources/SwiftFilt/NodePrinterEntities.swift 468:80-468:90
 Sources/SwiftFilt/NodePrinterEntities.swift 490:57-490:67
-Sources/SwiftFilt/NodePrinterEntities.swift 49:96-49:97
 Sources/SwiftFilt/NodePrinterEntities.swift 500:26-500:40
 Sources/SwiftFilt/NodePrinterEntities.swift 521:49-521:59
-Sources/SwiftFilt/NodePrinterEntities.swift 656:59-656:72
+Sources/SwiftFilt/NodePrinterEntities.swift 670:59-670:72
+Sources/SwiftFilt/OldDemangler.swift 48:33-48:34
+Sources/SwiftFilt/OldDemangler.swift 79:60-79:62
 Sources/SwiftFilt/OldDemangler.swift 109:9-109:29
 Sources/SwiftFilt/OldDemangler.swift 118:33-118:47
-Sources/SwiftFilt/OldDemangler.swift 1280:9-1280:28
 Sources/SwiftFilt/OldDemangler.swift 333:28-333:79
 Sources/SwiftFilt/OldDemangler.swift 343:34-343:48
 Sources/SwiftFilt/OldDemangler.swift 365:79-365:81
 Sources/SwiftFilt/OldDemangler.swift 371:79-371:81
 Sources/SwiftFilt/OldDemangler.swift 395:78-395:80
 Sources/SwiftFilt/OldDemangler.swift 412:108-412:110
-Sources/SwiftFilt/OldDemangler.swift 48:33-48:34
-Sources/SwiftFilt/OldDemangler.swift 79:60-79:62
 Sources/SwiftFilt/OldDemangler.swift 818:32-818:46
 Sources/SwiftFilt/OldDemangler.swift 879:32-879:46
-Sources/SwiftFilt/Product/MangledNameScanner.swift 279:22-280:18
+Sources/SwiftFilt/OldDemangler.swift 1280:9-1280:28
 Sources/SwiftFilt/Product/SymbolIdentityKey.swift 108:61-117:19
 Sources/SwiftFilt/Product/SymbolIdentityKey.swift 116:12-116:23
+Sources/SwiftFilt/RemanglerDispatch.swift 53:80-53:92
+Sources/SwiftFilt/RemanglerDispatch.swift 97:117-97:130
 Sources/SwiftFilt/RemanglerDispatch.swift 162:38-162:53
 Sources/SwiftFilt/RemanglerDispatch.swift 215:58-215:62
 Sources/SwiftFilt/RemanglerDispatch.swift 252:86-252:90
@@ -252,14 +289,15 @@ Sources/SwiftFilt/RemanglerDispatch.swift 521:34-521:49
 Sources/SwiftFilt/RemanglerDispatch.swift 522:112-525:54
 Sources/SwiftFilt/RemanglerDispatch.swift 524:75-524:91
 Sources/SwiftFilt/RemanglerDispatch.swift 524:91-525:54
-Sources/SwiftFilt/RemanglerDispatch.swift 53:80-53:92
 Sources/SwiftFilt/RemanglerDispatch.swift 544:59-544:75
 Sources/SwiftFilt/RemanglerDispatch.swift 578:47-578:63
 Sources/SwiftFilt/RemanglerDispatch.swift 596:45-596:61
 Sources/SwiftFilt/RemanglerDispatch.swift 603:66-603:82
 Sources/SwiftFilt/RemanglerDispatch.swift 606:91-608:14
 Sources/SwiftFilt/RemanglerDispatch.swift 625:53-625:56
-Sources/SwiftFilt/RemanglerDispatch.swift 97:117-97:130
+Sources/SwiftFilt/RemanglerGenerics.swift 35:43-35:88
+Sources/SwiftFilt/RemanglerGenerics.swift 48:68-48:77
+Sources/SwiftFilt/RemanglerGenerics.swift 98:45-98:61
 Sources/SwiftFilt/RemanglerGenerics.swift 107:9-107:29
 Sources/SwiftFilt/RemanglerGenerics.swift 119:48-119:64
 Sources/SwiftFilt/RemanglerGenerics.swift 147:9-147:28
@@ -277,19 +315,28 @@ Sources/SwiftFilt/RemanglerGenerics.swift 260:70-260:86
 Sources/SwiftFilt/RemanglerGenerics.swift 263:55-263:71
 Sources/SwiftFilt/RemanglerGenerics.swift 264:61-264:77
 Sources/SwiftFilt/RemanglerGenerics.swift 273:53-273:80
-Sources/SwiftFilt/RemanglerGenerics.swift 304:80-304:82
-Sources/SwiftFilt/RemanglerGenerics.swift 307:80-307:82
+Sources/SwiftFilt/RemanglerGenerics.swift 304:87-304:89
+Sources/SwiftFilt/RemanglerGenerics.swift 307:87-307:89
 Sources/SwiftFilt/RemanglerGenerics.swift 310:54-310:70
 Sources/SwiftFilt/RemanglerGenerics.swift 315:17-315:38
-Sources/SwiftFilt/RemanglerGenerics.swift 323:88-323:89
-Sources/SwiftFilt/RemanglerGenerics.swift 35:36-35:81
+Sources/SwiftFilt/RemanglerGenerics.swift 323:95-323:96
 Sources/SwiftFilt/RemanglerGenerics.swift 362:46-362:62
 Sources/SwiftFilt/RemanglerGenerics.swift 376:89-376:105
 Sources/SwiftFilt/RemanglerGenerics.swift 377:16-379:10
 Sources/SwiftFilt/RemanglerGenerics.swift 407:60-407:76
 Sources/SwiftFilt/RemanglerGenerics.swift 413:18-413:34
-Sources/SwiftFilt/RemanglerGenerics.swift 48:68-48:77
-Sources/SwiftFilt/RemanglerGenerics.swift 98:45-98:61
+Sources/SwiftFilt/RemanglerNodes.swift 26:39-26:55
+Sources/SwiftFilt/RemanglerNodes.swift 34:95-36:18
+Sources/SwiftFilt/RemanglerNodes.swift 68:37-68:52
+Sources/SwiftFilt/RemanglerNodes.swift 71:18-71:34
+Sources/SwiftFilt/RemanglerNodes.swift 82:18-82:34
+Sources/SwiftFilt/RemanglerNodes.swift 84:101-84:105
+Sources/SwiftFilt/RemanglerNodes.swift 85:9-87:105
+Sources/SwiftFilt/RemanglerNodes.swift 87:46-87:98
+Sources/SwiftFilt/RemanglerNodes.swift 87:101-87:105
+Sources/SwiftFilt/RemanglerNodes.swift 92:18-92:34
+Sources/SwiftFilt/RemanglerNodes.swift 94:101-94:105
+Sources/SwiftFilt/RemanglerNodes.swift 96:48-96:64
 Sources/SwiftFilt/RemanglerNodes.swift 106:65-106:70
 Sources/SwiftFilt/RemanglerNodes.swift 110:48-110:62
 Sources/SwiftFilt/RemanglerNodes.swift 128:90-128:95
@@ -301,18 +348,19 @@ Sources/SwiftFilt/RemanglerNodes.swift 227:49-227:63
 Sources/SwiftFilt/RemanglerNodes.swift 229:39-229:54
 Sources/SwiftFilt/RemanglerNodes.swift 230:91-230:105
 Sources/SwiftFilt/RemanglerNodes.swift 234:9-235:23
-Sources/SwiftFilt/RemanglerNodes.swift 26:39-26:55
-Sources/SwiftFilt/RemanglerNodes.swift 34:95-36:18
-Sources/SwiftFilt/RemanglerNodes.swift 68:37-68:52
-Sources/SwiftFilt/RemanglerNodes.swift 71:18-71:34
-Sources/SwiftFilt/RemanglerNodes.swift 82:18-82:34
-Sources/SwiftFilt/RemanglerNodes.swift 84:101-84:105
-Sources/SwiftFilt/RemanglerNodes.swift 85:9-87:105
-Sources/SwiftFilt/RemanglerNodes.swift 87:101-87:105
-Sources/SwiftFilt/RemanglerNodes.swift 87:46-87:98
-Sources/SwiftFilt/RemanglerNodes.swift 92:18-92:34
-Sources/SwiftFilt/RemanglerNodes.swift 94:101-94:105
-Sources/SwiftFilt/RemanglerNodes.swift 96:48-96:64
+Sources/SwiftFilt/RemanglerTailKinds.swift 35:79-35:95
+Sources/SwiftFilt/RemanglerTailKinds.swift 36:51-38:14
+Sources/SwiftFilt/RemanglerTailKinds.swift 37:73-37:89
+Sources/SwiftFilt/RemanglerTailKinds.swift 37:89-38:14
+Sources/SwiftFilt/RemanglerTailKinds.swift 41:66-41:82
+Sources/SwiftFilt/RemanglerTailKinds.swift 43:76-43:92
+Sources/SwiftFilt/RemanglerTailKinds.swift 47:66-47:82
+Sources/SwiftFilt/RemanglerTailKinds.swift 48:24-50:18
+Sources/SwiftFilt/RemanglerTailKinds.swift 49:56-49:72
+Sources/SwiftFilt/RemanglerTailKinds.swift 49:72-50:18
+Sources/SwiftFilt/RemanglerTailKinds.swift 59:72-59:73
+Sources/SwiftFilt/RemanglerTailKinds.swift 76:76-76:92
+Sources/SwiftFilt/RemanglerTailKinds.swift 93:46-93:61
 Sources/SwiftFilt/RemanglerTailKinds.swift 100:61-100:77
 Sources/SwiftFilt/RemanglerTailKinds.swift 102:62-102:78
 Sources/SwiftFilt/RemanglerTailKinds.swift 104:80-104:96
@@ -334,47 +382,38 @@ Sources/SwiftFilt/RemanglerTailKinds.swift 254:57-254:73
 Sources/SwiftFilt/RemanglerTailKinds.swift 267:48-267:64
 Sources/SwiftFilt/RemanglerTailKinds.swift 306:91-306:107
 Sources/SwiftFilt/RemanglerTailKinds.swift 318:101-318:103
-Sources/SwiftFilt/RemanglerTailKinds.swift 35:79-35:95
 Sources/SwiftFilt/RemanglerTailKinds.swift 366:39-366:70
-Sources/SwiftFilt/RemanglerTailKinds.swift 36:51-38:14
 Sources/SwiftFilt/RemanglerTailKinds.swift 373:107-373:123
-Sources/SwiftFilt/RemanglerTailKinds.swift 37:73-37:89
-Sources/SwiftFilt/RemanglerTailKinds.swift 37:89-38:14
 Sources/SwiftFilt/RemanglerTailKinds.swift 406:111-406:127
 Sources/SwiftFilt/RemanglerTailKinds.swift 408:61-408:77
 Sources/SwiftFilt/RemanglerTailKinds.swift 414:65-414:81
 Sources/SwiftFilt/RemanglerTailKinds.swift 418:100-418:116
 Sources/SwiftFilt/RemanglerTailKinds.swift 419:120-419:136
-Sources/SwiftFilt/RemanglerTailKinds.swift 41:66-41:82
 Sources/SwiftFilt/RemanglerTailKinds.swift 430:52-430:68
-Sources/SwiftFilt/RemanglerTailKinds.swift 43:76-43:92
 Sources/SwiftFilt/RemanglerTailKinds.swift 446:49-446:65
 Sources/SwiftFilt/RemanglerTailKinds.swift 458:75-460:10
 Sources/SwiftFilt/RemanglerTailKinds.swift 462:81-464:14
 Sources/SwiftFilt/RemanglerTailKinds.swift 474:60-474:76
-Sources/SwiftFilt/RemanglerTailKinds.swift 47:66-47:82
-Sources/SwiftFilt/RemanglerTailKinds.swift 48:24-50:18
-Sources/SwiftFilt/RemanglerTailKinds.swift 490:61-490:62
-Sources/SwiftFilt/RemanglerTailKinds.swift 49:56-49:72
-Sources/SwiftFilt/RemanglerTailKinds.swift 49:72-50:18
-Sources/SwiftFilt/RemanglerTailKinds.swift 59:72-59:73
-Sources/SwiftFilt/RemanglerTailKinds.swift 76:76-76:92
-Sources/SwiftFilt/RemanglerTailKinds.swift 93:46-93:61
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 238:18-238:31
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 304:29-304:45
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 321:70-321:74
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 374:53-374:57
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 376:71-376:72
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 378:105-378:106
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 385:49-385:59
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 395:71-395:118
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 396:49-396:65
-Sources/SwiftFilt/SwiftDemanglerPrinter.swift 398:79-398:95
+Sources/SwiftFilt/RemanglerTailKinds.swift 490:68-490:69
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 255:18-255:31
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 334:29-334:45
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 351:70-351:74
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 404:53-404:57
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 406:71-406:72
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 408:105-408:106
 Sources/SwiftFilt/SwiftDemanglerPrinter.swift 415:49-415:59
-Sources/SwiftFilt/SwiftMangler.swift 249:51-249:52
-Sources/SwiftFilt/SwiftMangler.swift 300:58-300:74
-Sources/SwiftFilt/SwiftMangler.swift 388:68-390:22
-Sources/SwiftFilt/SwiftMangler.swift 97:52-97:56
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 425:71-425:118
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 426:49-426:65
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 428:79-428:95
+Sources/SwiftFilt/SwiftDemanglerPrinter.swift 445:49-445:59
+Sources/SwiftFilt/SwiftMangler.swift 106:52-106:56
+Sources/SwiftFilt/SwiftMangler.swift 273:51-273:52
+Sources/SwiftFilt/SwiftMangler.swift 324:58-324:74
+Sources/SwiftFilt/SwiftMangler.swift 412:68-414:22
+Sources/SwiftFilt/SwiftPunycode.swift 83:45-83:59
+Sources/SwiftFilt/SwiftPunycode.swift 87:44-87:58
+Sources/SwiftFilt/SwiftPunycode.swift 92:49-92:63
+Sources/SwiftFilt/SwiftPunycode.swift 95:25-95:39
 Sources/SwiftFilt/SwiftPunycode.swift 109:43-109:57
 Sources/SwiftFilt/SwiftPunycode.swift 112:67-112:81
 Sources/SwiftFilt/SwiftPunycode.swift 130:41-130:55
@@ -390,64 +429,14 @@ Sources/SwiftFilt/SwiftPunycode.swift 208:97-208:111
 Sources/SwiftFilt/SwiftPunycode.swift 211:20-213:14
 Sources/SwiftFilt/SwiftPunycode.swift 214:49-214:63
 Sources/SwiftFilt/SwiftPunycode.swift 223:93-223:107
-Sources/SwiftFilt/SwiftPunycode.swift 83:45-83:59
-Sources/SwiftFilt/SwiftPunycode.swift 87:44-87:58
-Sources/SwiftFilt/SwiftPunycode.swift 92:49-92:63
-Sources/SwiftFilt/SwiftPunycode.swift 95:25-95:39
-Sources/SwiftFilt/SwiftSymbolClassifier.swift 102:81-103:53
-Sources/SwiftFilt/SwiftSymbolClassifier.swift 109:76-109:92
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 58:60-58:103
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 59:88-59:104
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 64:13-65:29
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 81:55-84:6
-Sources/SwiftFilt/SwiftSymbolClassifier.swift 82:110-83:39
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 82:97-82:110
+Sources/SwiftFilt/SwiftSymbolClassifier.swift 82:110-83:39
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 92:42-92:55
 Sources/SwiftFilt/SwiftSymbolClassifier.swift 95:41-97:14
+Sources/SwiftFilt/SwiftSymbolClassifier.swift 102:81-103:53
+Sources/SwiftFilt/SwiftSymbolClassifier.swift 109:76-109:92
 Sources/SwiftFilt/ValueWitnessKinds.swift 43:61-43:64
-Sources/SwiftFilt/EngineStacks.swift 152:27-152:73
-Sources/SwiftFilt/EngineStacks.swift 280:44-280:121
-# 0.5.0 depth-ceiling arms (engine change: construction-time tree-depth
-# bounding, maxTreeDepth). The MECHANISM is witnessed end to end by
-# DepthCeilingTests/DeepInputTests: the single-child and two-child make
-# poison arms, the driver-loop decline, the create-wrapper null
-# propagation, the routed nil-exit drains, the adopt refusal, and the
-# boundary probes (never renders a fabrication, never crashes at any
-# depth to 1M). The rows below are the mechanism's remaining arms, each
-# either boundary-parity-dependent (a poison fires only when a child
-# lands EXACTLY at the ceiling at that arity's call site — which of the
-# sibling arms crosses first depends on the grammar shape's per-level
-# increment, and the covered arms are the ones real shapes cross
-# through), a defensive twin of a covered arm (append/set to an
-# already-poisoned parent, kept so the childless invariant survives any
-# future direct-make call site), or unreachable by construction (the
-# arena's releaseDeep conformance no-op — its needsRoutedRelease is
-# constant false, which is the guard that would route there; the scratch
-# drain loop — scratch users truncate to their mark on every path out,
-# so the region is provably empty at every drain site).
-Sources/SwiftFilt/ArenaBuilder.swift 307:47-307:57
-Sources/SwiftFilt/ArenaBuilder.swift 604:55-604:65
-Sources/SwiftFilt/ArenaBuilder.swift 606:33-609:10
-Sources/SwiftFilt/ArenaBuilder.swift 675:44-675:46
-Sources/SwiftFilt/Demangler.swift 381:41-381:55
-Sources/SwiftFilt/Demangler.swift 401:39-401:53
-Sources/SwiftFilt/EngineStacks.swift 172:32-175:10
-Sources/SwiftFilt/NodeBuilder.swift 280:36-283:10
-Sources/SwiftFilt/NodeBuilder.swift 281:33-281:41
-Sources/SwiftFilt/NodeBuilder.swift 298:36-301:10
-Sources/SwiftFilt/NodeBuilder.swift 313:36-316:10
-Sources/SwiftFilt/NodeBuilder.swift 397:38-397:72
-Sources/SwiftFilt/NodeBuilder.swift 399:33-403:10
-Sources/SwiftFilt/NodeBuilder.swift 409:38-409:72
-Sources/SwiftFilt/NodeBuilder.swift 411:33-415:10
-# The `while true` loop fallthrough of demangleMultiSubstitutions'
-# operator scan: proven unreachable (the loop exits only through its
-# returns), of the same class as the pinned 31:32 arm beside it. llvm's
-# counter expressions usually fold it into a covered neighbor; observed
-# reading as missed on a clean 0.4.0-HEAD run (2026-07-23), so it is
-# pinned under both coordinate forms to keep the gate flicker-free.
-Sources/SwiftFilt/DemanglerSubstitutions.swift 32:10-33:6
-# Flicker twin beside the pinned 253:14 arm (`demanglePlainFunction`'s
-# single-parameter ternary): the `: 1` sub-region reads covered on most
-# runs via llvm counter folding; observed missed once (2026-07-24).
-Sources/SwiftFilt/DemanglerTypes.swift 254:85-254:86

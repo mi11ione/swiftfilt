@@ -107,7 +107,15 @@ public extension SwiftSymbol {
     /// This is the AST-node-level diff target for comparison against the
     /// `swift-demangle` oracle.
     func treeDump() -> String {
-        var out = ""
+        // The accumulator is a UTF-8 byte buffer decoded once at the end, not a
+        // growing `String`: the walk itself was a rounding error next to
+        // `String`'s per-append grapheme bookkeeping (`_StringGuts.append`,
+        // `prepareForAppendInPlace`, `isUniquelyReferenced`, `_updateCountAndFlags`),
+        // and the indent was an allocation per node — `String(repeating:count:)`
+        // built a fresh string for every line. Byte-exactness is structural: the
+        // bytes are the exact concatenation of the pieces' UTF-8, which is what
+        // `String.append` stored, so the decode reproduces the former output.
+        var out: [UInt8] = []
         // Iterative pre-order walk on an explicit heap stack: no native
         // recursion, so a tree of ANY depth dumps without a stack-depth
         // bound — including a `SwiftSymbol` a caller hand-built past the
@@ -124,23 +132,50 @@ public extension SwiftSymbol {
                 index -= 1
             }
         }
-        return out
+        return String(decoding: out, as: UTF8.self)
     }
 
-    private func appendTreeDumpLine(into out: inout String, depth: Int) {
-        out.append(String(repeating: " ", count: depth * 2))
-        out.append("kind=")
-        out.append(kind.name)
+    /// Fixed fragments of the dump, as `StaticString` so appending one is a
+    /// memcpy from a pointer and a length rather than a `String.UTF8View` walk.
+    private static let kindPrefix: StaticString = "kind="
+    private static let textPrefix: StaticString = ", text=\""
+    private static let indexPrefix: StaticString = ", index="
+
+    private func appendTreeDumpLine(into out: inout [UInt8], depth: Int) {
+        out.append(contentsOf: repeatElement(0x20, count: depth * 2)) // spaces
+        Self.kindPrefix.withUTF8Buffer { out.append(contentsOf: $0) }
+        out.append(contentsOf: kind.name.utf8)
         switch contents {
         case .none: break
         case let .name(value):
-            out.append(", text=\"")
-            out.append(value)
-            out.append("\"")
+            Self.textPrefix.withUTF8Buffer { out.append(contentsOf: $0) }
+            out.append(contentsOf: value.utf8)
+            out.append(0x22) // '"'
         case let .index(value):
-            out.append(", index=")
-            out.append(String(value))
+            Self.indexPrefix.withUTF8Buffer { out.append(contentsOf: $0) }
+            appendDecimal(value, into: &out)
         }
-        out.append("\n")
+        out.append(0x0A) // '\n'
+    }
+
+    /// The decimal digits of `value` written straight into the buffer — the
+    /// bytes `String(value)` would have produced, without the `String`.
+    private func appendDecimal(_ value: UInt64, into out: inout [UInt8]) {
+        if value == 0 { out.append(0x30); return }
+        // UInt64.max is 20 digits; emit least-significant first, then reverse
+        // the run just written.
+        let start = out.count
+        var remaining = value
+        while remaining > 0 {
+            out.append(0x30 &+ UInt8(remaining % 10))
+            remaining /= 10
+        }
+        var lo = start
+        var hi = out.count - 1
+        while lo < hi {
+            out.swapAt(lo, hi)
+            lo += 1
+            hi -= 1
+        }
     }
 }

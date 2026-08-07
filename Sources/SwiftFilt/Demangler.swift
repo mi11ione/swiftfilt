@@ -171,17 +171,6 @@ struct Demangler<B: NodeBuilder>: ~Copyable {
         return String(decoding: slice, as: UTF8.self)
     }
 
-    /// Whether the parse window begins with `prefix` — the windowed
-    /// `text.starts(with:)`.
-    @inline(__always)
-    func windowStarts(with prefix: [UInt8]) -> Bool {
-        guard textStart + prefix.count <= textEnd else { return false }
-        for (i, byte) in prefix.enumerated() where text[textStart + i] != byte {
-            return false
-        }
-        return true
-    }
-
     // MARK: Node stack
 
     @inline(__always)
@@ -320,14 +309,14 @@ struct Demangler<B: NodeBuilder>: ~Copyable {
         // protocol type names still emitted in ObjC metadata). The whole `_T`
         // family routes to the old demangler except the Swift-4.0 `_T0`
         // new-mangling prefix, which the prefix table below handles.
-        let isOldPrefix = windowStarts(with: DemanglerPrefixes.oldManglingPrefix)
-        if isOldPrefix, !windowStarts(with: DemanglerPrefixes.swift4ManglingPrefix) {
+        let isOldPrefix = DemanglerPrefixes.hasOldManglingPrefix(text, from: textStart, to: textEnd)
+        if isOldPrefix, !DemanglerPrefixes.hasSwift4ManglingPrefix(text, from: textStart, to: textEnd) {
             return demangleOldSymbolAsNode()
         }
         let prefixLength = DemanglerPrefixes.manglingPrefixLength(text, from: textStart, to: textEnd)
         if prefixLength == 0 { return nil }
 
-        if windowStarts(with: DemanglerPrefixes.embeddedPrefix) || windowStarts(with: DemanglerPrefixes.underscoredEmbeddedPrefix) {
+        if DemanglerPrefixes.hasEmbeddedPrefix(text, from: textStart, to: textEnd) {
             flavor = .embedded
         }
         isOldFunctionTypeMangling = isOldPrefix
@@ -597,39 +586,84 @@ struct Demangler<B: NodeBuilder>: ~Copyable {
 /// malloc/free path). A non-generic namespace keeps them allocated once and lets
 /// ``SwiftSymbolClassifier`` probe a name without naming a builder type.
 enum DemanglerPrefixes {
-    /// Every current-era mangling prefix, with and without the Mach-O
-    /// leading underscore, in first-match order.
-    private static let prefixes: [[UInt8]] = [
-        Array("_T0".utf8),
-        Array("$S".utf8), Array("_$S".utf8),
-        Array("$s".utf8), Array("_$s".utf8),
-        Array("$e".utf8), Array("_$e".utf8),
-        Array("@__swiftmacro_".utf8),
-    ]
+    /// `@__swiftmacro_` is the only prefix long enough to be worth a table;
+    /// every other one is settled by the two or three byte comparisons in
+    /// ``manglingPrefixLength(_:from:to:)``.
+    private static let macroPrefix = Array("@__swiftmacro_".utf8)
 
-    static let oldManglingPrefix = Array("_T".utf8)
-    static let swift4ManglingPrefix = Array("_T0".utf8)
-    static let embeddedPrefix = Array("$e".utf8)
-    static let underscoredEmbeddedPrefix = Array("_$e".utf8)
+    // ASCII bytes of the prefix alphabet, named so the switches below read as
+    // the prefixes they test.
+    private static let dollar: UInt8 = 0x24 // '$'
+    private static let underscore: UInt8 = 0x5F // '_'
+    private static let at: UInt8 = 0x40 // '@'
+    private static let upperS: UInt8 = 0x53 // 'S'
+    private static let lowerS: UInt8 = 0x73 // 's'
+    private static let lowerE: UInt8 = 0x65 // 'e'
+    private static let upperT: UInt8 = 0x54 // 'T'
+    private static let zero: UInt8 = 0x30 // '0'
 
     static func manglingPrefixLength(_ text: [UInt8]) -> Int {
         manglingPrefixLength(text, from: 0, to: text.count)
     }
 
-    /// Windowed variant: probe the prefix table at `text[from ..< to]` — the
-    /// scanner re-windows one demangler over a log buffer, so the prefix test
-    /// must respect the candidate's bounds, not the buffer's.
+    /// The length of the mangling prefix `text[from ..< to]` opens with, or 0.
+    /// Windowed because the scanner re-windows one demangler over a log buffer,
+    /// so the prefix test must respect the candidate's bounds, not the buffer's.
+    ///
+    /// The prefix set is `_T0`, `$S`/`_$S`, `$s`/`_$s`, `$e`/`_$e` and
+    /// `@__swiftmacro_`. Testing them as eight `[UInt8]` tables ran a byte loop
+    /// up to eight times per demangle and touched eight `swift_once`-guarded
+    /// array globals; every prefix is decided by its FIRST byte, so a switch on
+    /// it answers in one comparison. The prefixes are pairwise non-prefixing, so
+    /// the table's first-match-wins order carried no information and the answer
+    /// is identical.
+    @inline(__always)
     static func manglingPrefixLength(_ text: [UInt8], from: Int, to: Int) -> Int {
-        for prefix in prefixes {
-            let count = prefix.count
-            guard from + count <= to else { continue }
-            var matches = true
-            for i in 0 ..< count where text[from + i] != prefix[i] {
-                matches = false
-                break
+        guard from < to else { return 0 }
+        switch text[from] {
+        case dollar:
+            guard from + 2 <= to else { return 0 }
+            let second = text[from + 1]
+            return second == lowerS || second == upperS || second == lowerE ? 2 : 0
+        case underscore:
+            guard from + 3 <= to else { return 0 }
+            switch text[from + 1] {
+            case dollar:
+                let third = text[from + 2]
+                return third == lowerS || third == upperS || third == lowerE ? 3 : 0
+            case upperT:
+                return text[from + 2] == zero ? 3 : 0
+            default:
+                return 0
             }
-            if matches { return count }
+        case at:
+            let count = macroPrefix.count
+            guard from + count <= to else { return 0 }
+            for i in 0 ..< count where text[from + i] != macroPrefix[i] {
+                return 0
+            }
+            return count
+        default:
+            return 0
         }
-        return 0
+    }
+
+    /// `_T`-prefixed, i.e. a candidate for the legacy grammar.
+    @inline(__always)
+    static func hasOldManglingPrefix(_ text: [UInt8], from: Int, to: Int) -> Bool {
+        from + 2 <= to && text[from] == underscore && text[from + 1] == upperT
+    }
+
+    /// The Swift-4.0 `_T0` new-mangling prefix.
+    @inline(__always)
+    static func hasSwift4ManglingPrefix(_ text: [UInt8], from: Int, to: Int) -> Bool {
+        from + 3 <= to && text[from] == underscore && text[from + 1] == upperT && text[from + 2] == zero
+    }
+
+    /// Embedded Swift's `$e` / `_$e`.
+    @inline(__always)
+    static func hasEmbeddedPrefix(_ text: [UInt8], from: Int, to: Int) -> Bool {
+        if from + 2 <= to, text[from] == dollar, text[from + 1] == lowerE { return true }
+        return from + 3 <= to && text[from] == underscore && text[from + 1] == dollar && text[from + 2] == lowerE
     }
 }

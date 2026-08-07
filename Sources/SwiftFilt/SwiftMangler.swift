@@ -52,7 +52,7 @@ final class Remangler {
     /// — equality (and therefore every substitution DECISION) is still the
     /// full structural `==`, exactly the reference's `deepEquals` backstop.
     @exclusivity(unchecked) private var nodeSubstitutionIndex: [SubstitutionEntry: Int] = [:]
-    @exclusivity(unchecked) private var identifierSubstitutionIndex: [[UInt8]: Int] = [:]
+    @exclusivity(unchecked) private var identifierSubstitutionIndex: [String: Int] = [:]
     /// Word slices already emitted into `buffer` (start, length), for the
     /// identifier word-substitution encoder.
     @exclusivity(unchecked) var words: [(start: Int, length: Int)] = []
@@ -69,7 +69,16 @@ final class Remangler {
         buffer.append(c)
     }
 
-    @inline(__always) func emit(_ s: String) {
+    /// Append a COMPILE-TIME-CONSTANT fragment — a `StaticString` is a pointer
+    /// and a length, so this is a bounds check and a memcpy, where the `String`
+    /// overload runs `String.UTF8View`'s `Sequence` conformance through
+    /// `_StringGuts.copyUTF8`. The same overload split the printer uses:
+    /// an uninterpolated literal binds here, anything else to ``emitDynamic``.
+    @inline(__always) func emit(_ s: StaticString) {
+        s.withUTF8Buffer { buffer.append(contentsOf: $0) }
+    }
+
+    @inline(__always) func emitDynamic(_ s: String) {
         buffer.append(contentsOf: s.utf8)
     }
 
@@ -86,7 +95,7 @@ final class Remangler {
         if value == 0 {
             emit(UInt8(0x5F)) // '_'
         } else {
-            emit(String(value - 1))
+            emitDynamic(String(value - 1))
             emit(UInt8(0x5F))
         }
     }
@@ -131,11 +140,23 @@ final class Remangler {
 
     // MARK: Substitutions
 
-    private func identifierKey(_ node: SwiftSymbol) -> [UInt8] {
-        let text = Array((node.text ?? "").utf8)
+    /// The identifier substitution table's key.
+    ///
+    /// Keyed as a `String`, so the common (non-operator) case IS the node's own
+    /// payload and allocates nothing — the former `[UInt8]` key built
+    /// `Array(text.utf8)` on every probe and every insert, and this table is
+    /// consulted for every identifier the remangler emits. The two keyings
+    /// distinguish exactly the same identifiers: `translateOperatorChar` maps a
+    /// standalone ASCII byte to another ASCII byte and passes every other byte
+    /// through, so on the valid UTF-8 a `String` payload always is, byte-wise
+    /// translation yields valid UTF-8 (no mapped byte is a continuation byte,
+    /// and none is produced from one) and the decode is lossless — equal keys
+    /// before are equal keys after.
+    private func identifierKey(_ node: SwiftSymbol) -> String {
+        let text = node.text ?? ""
         switch node.kind {
         case .InfixOperator, .PrefixOperator, .PostfixOperator:
-            return ManglingChars.translateOperator(text)
+            return String(decoding: ManglingChars.translateOperator(Array(text.utf8)), as: UTF8.self)
         default:
             return text
         }
@@ -203,12 +224,15 @@ final class Remangler {
     func addSubstitution(_ node: SwiftSymbol, treatAsIdentifier: Bool = false) {
         let idx = substitutionCount
         substitutionCount += 1
+        // One hash and one probe, not two: the check-then-assign form asked
+        // `== nil` and then assigned, and by the invariant recorded on the
+        // tables above — `addSubstitution` is only reached for content not
+        // already substituted — that check answered "absent" every time, so
+        // first-assigned-wins and last-assigned-wins cannot differ here.
         if treatAsIdentifier {
-            let key = identifierKey(node)
-            if identifierSubstitutionIndex[key] == nil { identifierSubstitutionIndex[key] = idx }
+            identifierSubstitutionIndex.updateValue(idx, forKey: identifierKey(node))
         } else {
-            let entry = SubstitutionEntry(node)
-            if nodeSubstitutionIndex[entry] == nil { nodeSubstitutionIndex[entry] = idx }
+            nodeSubstitutionIndex.updateValue(idx, forKey: SubstitutionEntry(node))
         }
     }
 
@@ -307,7 +331,7 @@ private struct SubstitutionMerging {
                 // Merge with the same substitution: 'AB' -> 'A2B' / 'S3i' -> 'S4i'.
                 lastNumSubsts += 1
                 r.resetBuffer(to: lastSubstPosition)
-                r.emit(String(lastNumSubsts))
+                r.emitDynamic(String(lastNumSubsts))
                 r.emit(subst)
                 lastSubstSize = r.buffer.count - lastSubstPosition
                 return true
@@ -336,7 +360,7 @@ extension Remangler {
            let punycoded = SwiftPunycode.encodeFromUTF8(ident, mapNonSymbolChars: true)
         {
             emit("00")
-            emit(String(punycoded.count))
+            emitDynamic(String(punycoded.count))
             if let first = punycoded.first, ManglingChars.isDigit(first) || first == 0x5F {
                 emit(UInt8(0x5F)) // '_'
             }
@@ -378,7 +402,7 @@ extension Remangler {
         for idx in 0 ..< end {
             let repl = substWordsInIdent[idx]
             if cursor < repl.stringPos {
-                emit(String(repl.stringPos - cursor))
+                emitDynamic(String(repl.stringPos - cursor))
                 var first = true
                 while cursor < repl.stringPos {
                     if wordsInBufferIdx < words.count, words[wordsInBufferIdx].start == cursor {

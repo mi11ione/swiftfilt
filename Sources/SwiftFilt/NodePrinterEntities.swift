@@ -18,7 +18,7 @@ extension NodePrinter {
         if nb.childCount(of: node) < 2 { setInvalid(); return }
 
         func printConventionWithMangledCType(_ convention: String) {
-            emit("@convention(\(convention)")
+            emitDynamic("@convention(\(convention)")
             if nb.firstChild(of: node).map({ nb.kind(of: $0) }) == .ClangType {
                 emit(", mangledCType: \""); _ = print(nb.child(of: node, at: 0), depth: d); emit("\"")
             }
@@ -161,7 +161,7 @@ extension NodePrinter {
                 if isGenericParamPack(UInt64(gpDepth), index) { emit("each ") }
                 let value = isGenericParamValue(UInt64(gpDepth), index)
                 if value != nil { emit("let ") }
-                emit(options.genericParameterName(depth: UInt64(gpDepth), index: index))
+                emitDynamic(options.genericParameterName(depth: UInt64(gpDepth), index: index))
                 index += 1
             }
         }
@@ -190,7 +190,7 @@ extension NodePrinter {
         case "M", "m": "_TrivialAtMost"
         default: ""
         }
-        emit(name)
+        emitDynamic(name)
         if nb.childCount(of: node) > 2 {
             emit("("); _ = print(nb.child(of: node, at: 2), depth: d)
             if nb.childCount(of: node) > 3 { emit(", "); _ = print(nb.child(of: node, at: 3), depth: d) }
@@ -206,7 +206,7 @@ extension NodePrinter {
             return
         }
         if nb.firstChild(of: node).map({ nb.kind(of: $0) }) == .RepresentationChanged { emit("representation changed of "); return }
-        emit(description); emit(" <")
+        emitDynamic(description); emit(" <")
         var separator = ""
         var argNum = 0
         for i in 0 ..< nb.childCount(of: node) {
@@ -214,10 +214,10 @@ extension NodePrinter {
             switch nb.kind(of: child) {
             case .SpecializationPassID, .DroppedArgument: break
             case .IsSerialized:
-                emit(separator); separator = ", "; _ = print(child, depth: depth + 1)
+                emitDynamic(separator); separator = ", "; _ = print(child, depth: depth + 1)
             default:
                 if nb.childCount(of: child) != 0 {
-                    emit(separator); emit(paramPrefix); separator = ", "
+                    emitDynamic(separator); emitDynamic(paramPrefix); separator = ", "
                     switch nb.kind(of: child) {
                     case .FunctionSignatureSpecializationParam:
                         emit("Arg["); emit(UInt64(argNum)); emit("] = "); printFunctionSigSpecializationParams(child, depth: depth)
@@ -311,15 +311,15 @@ extension NodePrinter {
             case 2, 3: // ConstantPropInteger, ConstantPropFloat
                 guard let text = nb.text(of: child) else { return }
                 let dm = demangleSymbolAsString(text)
-                emit(dm.isEmpty ? text : dm)
+                emitDynamic(dm.isEmpty ? text : dm)
             case 4: // ConstantPropString
                 if let text = nb.text(of: child), text.first == "_" {
-                    emit(String(text.dropFirst())); return
+                    emitDynamic(String(text.dropFirst())); return
                 }
                 _ = print(child, depth: depth + 1)
             case 0, 1: // ConstantPropFunction, ConstantPropGlobal
                 let dm = demangleSymbolAsString(nb.text(of: child) ?? "")
-                emit(dm.isEmpty ? (nb.text(of: child) ?? "") : dm)
+                emitDynamic(dm.isEmpty ? (nb.text(of: child) ?? "") : dm)
             default:
                 _ = print(child, depth: depth + 1)
             }
@@ -560,7 +560,21 @@ extension NodePrinter {
             entity = nb.child(of: entity, at: 0)
         }
 
-        var multiWordName = extraName.contains(" ")
+        // A byte scan as a SHORT-CIRCUIT, not a replacement. `contains(" ")` is a
+        // grapheme search over the whole string, run on every entity printed —
+        // and `printEntity` is the hottest path in the printer. The two
+        // predicates are not interchangeable in general: a U+0020 followed by a
+        // combining scalar is ONE grapheme and is not `" "`, so a byte scan
+        // answers true where the grapheme search answers false. The implication
+        // that IS exhaustively true is the other direction — a `" "` grapheme
+        // requires the byte 0x20, since U+0020 has no canonical decomposition and
+        // nothing decomposes to it — so a missing 0x20 settles the answer as
+        // false with no search at all, and the grapheme search still decides
+        // every string that does carry the byte (the handful of entity kinds
+        // whose extra name holds a space: `default argument `, the macro
+        // expansions). The predicate is therefore identical, not merely
+        // equivalent on the corpus.
+        var multiWordName = extraName.utf8.contains(0x20) && extraName.contains(" ")
         let localName = hasName && nb.childCount(of: entity) > 1 && nb.kind(of: nb.child(of: entity, at: 1)) == .LocalDeclName
         if localName, options.displayLocalNameContexts { multiWordName = true }
 
@@ -622,15 +636,15 @@ extension NodePrinter {
     {
         if hasName || !overwriteName.isEmpty {
             if !extraName.isEmpty, multiWordName {
-                emit(extraName)
-                if extraIndex >= 0 { emit(String(extraIndex)) }
+                emitDynamic(extraName)
+                if extraIndex >= 0 { emitDynamic(String(extraIndex)) }
                 emit(" of "); extraName = ""; extraIndex = -1
             }
             // Byte position, as the reference's `CurrentPosition` byte probe
             // (NodePrinter.cpp) — `bytes.count` is that offset directly.
             let pos = bytes.count
             if !overwriteName.isEmpty {
-                emit(overwriteName)
+                emitDynamic(overwriteName)
             } else if nb.childCount(of: entity) > 1 {
                 let name = nb.child(of: entity, at: 1)
                 if nb.kind(of: name) != .PrivateDeclName { _ = print(name, depth: depth + 1) }
@@ -639,8 +653,8 @@ extension NodePrinter {
             if bytes.count != pos, !extraName.isEmpty { emit(".") }
         }
         if !extraName.isEmpty {
-            emit(extraName)
-            if extraIndex >= 0 { emit(String(extraIndex)) }
+            emitDynamic(extraName)
+            if extraIndex >= 0 { emitDynamic(String(extraIndex)) }
         }
     }
 

@@ -80,6 +80,10 @@ struct DemangleEntryPointTests {
         // (`S`: begins a type, not a symbol). The honest verdict is "not
         // Swift" — hand these C names to the next demangler, not corrupt.
         "_ToggleFlag", "_TableSize", "_TfooHelper", "_TS",
+        // Near-miss prefixes, one per arm of the parser's first-byte prefix
+        // dispatch: `$` and `_$` with a third byte outside `s`/`S`/`e`, and an
+        // `@` name long enough to be `@__swiftmacro_` that differs inside it.
+        "$xfoo", "_$xfoo", "@__swiftmacrX_4main3fooyyfMf_",
     ])
     func nonSwiftNamesReturnNilAndThrowNotSwiftMangled(_ name: String) {
         #expect(demangle(name) == nil)

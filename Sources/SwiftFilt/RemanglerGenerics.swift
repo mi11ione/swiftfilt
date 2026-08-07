@@ -32,7 +32,7 @@ extension Remangler {
     }
 
     func mangleGlobal(_ node: SwiftSymbol, depth: Int) -> Bool {
-        emit(flavor == .embedded ? SwiftManglingConstants.embeddedManglingPrefix : SwiftManglingConstants.manglingPrefix)
+        emitDynamic(flavor == .embedded ? SwiftManglingConstants.embeddedManglingPrefix : SwiftManglingConstants.manglingPrefix)
         var mangleInReverseOrder = false
         for (idx, child) in node.children.enumerated() {
             if isGlobalReverseOrderAttr(child.kind) {
@@ -154,10 +154,10 @@ extension Remangler {
         guard mangleChildNode(node, 1, depth: depth),
               let (numMembers, paramIdx) = mangleConstrainedType(node.children[0], depth: depth) else { return false }
         switch numMembers {
-        case -1: emit(subOp); return true
-        case 0: emit(zeroOp)
-        case 1: emit(oneOp)
-        default: emit(manyOp)
+        case -1: emitDynamic(subOp); return true
+        case 0: emitDynamic(zeroOp)
+        case 1: emitDynamic(oneOp)
+        default: emitDynamic(manyOp)
         }
         if let paramIdx { mangleDependentGenericParamIndex(paramIdx) }
         return true
@@ -197,7 +197,7 @@ extension Remangler {
         if numMembers != -1, let paramIdx { mangleDependentGenericParamIndex(paramIdx) }
         guard node.children.count > 1, node.children[1].kind == .Identifier,
               let layoutName = node.children[1].text, layoutName.count == 1 else { return false }
-        emit(layoutName)
+        emitDynamic(layoutName)
         if node.children.count >= 3 { guard mangleChildNode(node, 2, depth: depth) else { return false } }
         if node.children.count >= 4 { guard mangleChildNode(node, 3, depth: depth) else { return false } }
         return true
@@ -216,7 +216,7 @@ extension Remangler {
         for child in node.children where child.kind == .DroppedArgument {
             guard mangle(child, depth: depth + 1) else { return false }
         }
-        emit(specKind)
+        emitDynamic(specKind)
         for child in node.children where child.kind != .GenericSpecializationParam && child.kind != .DroppedArgument {
             guard mangle(child, depth: depth + 1) else { return false }
         }
@@ -297,16 +297,16 @@ extension Remangler {
             let kindNd = node.children[idx]; idx += 1
             guard kindNd.kind == .FunctionSignatureSpecializationParamKind, let kindValue = kindNd.index else { continue }
             switch kindValue {
-            case 0: emit(constPropPrefix + "f"); constPropPrefix = "" // ConstantPropFunction
-            case 1: emit(constPropPrefix + "g"); constPropPrefix = "" // ConstantPropGlobal
+            case 0: emitDynamic(constPropPrefix + "f"); constPropPrefix = "" // ConstantPropFunction
+            case 1: emitDynamic(constPropPrefix + "g"); constPropPrefix = "" // ConstantPropGlobal
             case 2: // ConstantPropInteger
-                emit(constPropPrefix + "i"); constPropPrefix = ""
-                if idx < node.children.count { emit(node.children[idx].text ?? ""); idx += 1 }
+                emitDynamic(constPropPrefix + "i"); constPropPrefix = ""
+                if idx < node.children.count { emitDynamic(node.children[idx].text ?? ""); idx += 1 }
             case 3: // ConstantPropFloat
-                emit(constPropPrefix + "d"); constPropPrefix = ""
-                if idx < node.children.count { emit(node.children[idx].text ?? ""); idx += 1 }
+                emitDynamic(constPropPrefix + "d"); constPropPrefix = ""
+                if idx < node.children.count { emitDynamic(node.children[idx].text ?? ""); idx += 1 }
             case 4: // ConstantPropString
-                emit(constPropPrefix + "s"); constPropPrefix = ""
+                emitDynamic(constPropPrefix + "s"); constPropPrefix = ""
                 guard idx < node.children.count else { return false }
                 switch node.children[idx].text {
                 case "u8": emit("b")
@@ -315,12 +315,12 @@ extension Remangler {
                 default: return false
                 }
                 idx += 1
-            case 9: emit(constPropPrefix + "k"); constPropPrefix = "" // ConstantPropKeyPath
-            case 10: emit(constPropPrefix + "S"); constPropPrefix = "" // ConstantPropStruct
+            case 9: emitDynamic(constPropPrefix + "k"); constPropPrefix = "" // ConstantPropKeyPath
+            case 10: emitDynamic(constPropPrefix + "S"); constPropPrefix = "" // ConstantPropStruct
             case 5: emit("c") // ClosureProp
             case 11: // ClosurePropPreviousArg
                 emit("C")
-                if idx < node.children.count { emit(String(node.children[idx].index ?? 0)); idx += 1 }
+                if idx < node.children.count { emitDynamic(String(node.children[idx].index ?? 0)); idx += 1 }
             case 6: emit("i") // BoxToValue
             case 7: emit("s") // BoxToStack
             case 8: emit("r") // InOutToOut
@@ -399,19 +399,19 @@ extension Remangler {
             "Builtin.Executor": "e", "Builtin.SILToken": "t",
             "Builtin.IntLiteral": "I", "Builtin.Word": "w", "Builtin.PackIndex": "P",
         ]
-        if let op = map[text] { emit(op); return true }
-        if text.hasPrefix("Builtin.Int") { emit("i"); emit(String(text.dropFirst("Builtin.Int".count))); emit("_"); return true }
-        if text.hasPrefix("Builtin.FPIEEE") { emit("f"); emit(String(text.dropFirst("Builtin.FPIEEE".count))); emit("_"); return true }
+        if let op = map[text] { emitDynamic(op); return true }
+        if text.hasPrefix("Builtin.Int") { emit("i"); emitDynamic(String(text.dropFirst("Builtin.Int".count))); emit("_"); return true }
+        if text.hasPrefix("Builtin.FPIEEE") { emit("f"); emitDynamic(String(text.dropFirst("Builtin.FPIEEE".count))); emit("_"); return true }
         if text.hasPrefix("Builtin.Vec") {
             let rest = String(text.dropFirst("Builtin.Vec".count))
             guard let xPos = rest.firstIndex(of: "x") else { return false }
             let count = String(rest[rest.startIndex ..< xPos])
             let element = String(rest[rest.index(after: xPos)...])
             if element == "RawPointer" { emit("p") }
-            else if element.hasPrefix("FPIEEE") { emit("f"); emit(String(element.dropFirst("FPIEEE".count))); emit("_") }
-            else if element.hasPrefix("Int") { emit("i"); emit(String(element.dropFirst("Int".count))); emit("_") }
+            else if element.hasPrefix("FPIEEE") { emit("f"); emitDynamic(String(element.dropFirst("FPIEEE".count))); emit("_") }
+            else if element.hasPrefix("Int") { emit("i"); emitDynamic(String(element.dropFirst("Int".count))); emit("_") }
             else { return false }
-            emit("Bv"); emit(count); emit("_")
+            emit("Bv"); emitDynamic(count); emit("_")
             return true
         }
         return false

@@ -17,7 +17,7 @@ public enum CLI {
     /// The tool's version, printed by `--version` — the package's single
     /// source of truth (the parity instrument reads it too); a release tag
     /// must equal this string exactly.
-    public static let version = "1.0.1"
+    public static let version = "1.0.2"
 
     /// Exit code for success (including echo-through of non-symbols).
     public static let exitSuccess: Int32 = 0

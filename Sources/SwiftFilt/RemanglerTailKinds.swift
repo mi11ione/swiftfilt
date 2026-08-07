@@ -53,7 +53,7 @@ extension Remangler {
         emit("I")
         if patternSubs != nil { emit("s") }
         if invocationSubs != nil { emit("I") }
-        emit(pseudoGeneric)
+        emitDynamic(pseudoGeneric)
         for child in node.children {
             switch child.kind {
             case .ImplDifferentiabilityKind: emit(UInt8(child.index ?? 0))
@@ -63,15 +63,15 @@ extension Remangler {
             case .ImplSendingResult: emit("T")
             case .ImplConvention:
                 guard let ch = implCalleeConvention(child.text) else { return false }
-                emit(ch)
+                emitDynamic(ch)
             case .ImplFunctionConvention:
                 guard mangleImplFunctionConvention(child, depth: d) else { return false }
             case .ImplCoroutineKind:
                 guard let ch = implCoroutineKind(child.text) else { return false }
-                emit(ch)
+                emitDynamic(ch)
             case .ImplFunctionAttribute:
                 guard let ch = implFunctionAttribute(child.text) else { return false }
-                emit(ch)
+                emitDynamic(ch)
             case .ImplYield:
                 emit("Y"); guard mangleImplParameter(child, depth: d) else { return false }
             case .ImplParameter:
@@ -89,7 +89,7 @@ extension Remangler {
 
     private func mangleImplParameter(_ child: SwiftSymbol, depth _: Int) -> Bool {
         guard let convText = child.firstChild?.text, let ch = implParamConvention(convText) else { return false }
-        emit(ch)
+        emitDynamic(ch)
         guard child.children.count >= 1 else { return true }
         for i in 1 ..< max(1, child.children.count - 1) {
             let g = child.children[i]
@@ -110,7 +110,7 @@ extension Remangler {
 
     private func mangleImplResult(_ child: SwiftSymbol, depth _: Int) -> Bool {
         guard let convText = child.firstChild?.text, let ch = implResultConvention(convText) else { return false }
-        emit(ch)
+        emitDynamic(ch)
         if child.children.count == 3 {
             guard mangleImplParameterResultDifferentiability(child.children[1]) else { return false }
         } else if child.children.count == 4 {
@@ -124,9 +124,9 @@ extension Remangler {
         let text = node.firstChild?.text ?? ""
         guard let attr = implFunctionConventionName(text) else { return false }
         if attr == "B" || attr == "C", node.children.count > 1, node.children[1].kind == .ClangType {
-            emit("z"); emit(attr); return mangleClangType(node.children[1])
+            emit("z"); emitDynamic(attr); return mangleClangType(node.children[1])
         }
-        emit(attr); return true
+        emitDynamic(attr); return true
     }
 
     func mangleImplParameterResultDifferentiability(_ node: SwiftSymbol) -> Bool {
@@ -138,7 +138,7 @@ extension Remangler {
 
     private func implParamText(_ node: SwiftSymbol, _ expected: String, _ ch: String) -> Bool {
         guard node.text == expected else { return false }
-        emit(ch); return true
+        emitDynamic(ch); return true
     }
 
     private func implCalleeConvention(_ text: String?) -> String? {
@@ -195,7 +195,7 @@ extension Remangler {
             guard mangle(node.children[idx], depth: d) else { return false }
             idx += 1
         }
-        emit(op)
+        emitDynamic(op)
         guard idx + 2 < node.children.count else { return false }
         guard mangle(node.children[idx], depth: d) else { return false } // kind
         guard mangle(node.children[idx + 1], depth: d) else { return false } // param indices
@@ -262,7 +262,7 @@ extension Remangler {
         for child in node.children where child.kind != .IsSerialized {
             guard mangle(child, depth: d) else { return false }
         }
-        emit(op)
+        emitDynamic(op)
         for child in node.children where child.kind == .IsSerialized {
             guard mangle(child, depth: d) else { return false }
         }
@@ -278,7 +278,7 @@ extension Remangler {
             guard mangleChildNode(node, idx, depth: d) else { return false }
             idx += 1
         }
-        emit("fM"); emit(char)
+        emit("fM"); emitDynamic(char)
         return mangleChildNode(node, idx, depth: d)
     }
 
@@ -316,7 +316,7 @@ extension Remangler {
         let d = depth + 1
         guard mangleChildNode(node, 0, depth: d), mangleChildNode(node, 1, depth: d) else { return false }
         if node.children.count == 4 { guard mangleChildNode(node, 3, depth: d) else { return false } }
-        emit(op)
+        emitDynamic(op)
         return mangleChildNode(node, 2, depth: d)
     }
 
@@ -474,7 +474,7 @@ extension Remangler {
             guard mangleChildNode(child, 0, depth: d) else { return false }
             break
         }
-        emit(op)
+        emitDynamic(op)
         for child in node.children where child.kind != .GenericSpecializationParam {
             guard mangle(child, depth: d) else { return false }
         }
@@ -487,10 +487,10 @@ extension Remangler {
         let d = depth + 1
         guard !node.children.isEmpty, mangle(node.children[0], depth: d) else { return false }
         if node.children.count == 2 {
-            emit(op); mangleIndex(node.children[1].index ?? 0)
+            emitDynamic(op); mangleIndex(node.children[1].index ?? 0)
         } else {
             guard node.children.count >= 3, mangle(node.children[1], depth: d) else { return false }
-            emit(op); mangleIndex(node.children[2].index ?? 0)
+            emitDynamic(op); mangleIndex(node.children[2].index ?? 0)
         }
         return true
     }

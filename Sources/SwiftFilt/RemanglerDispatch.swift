@@ -21,7 +21,7 @@ extension Remangler {
         case .`Type`: return mangleSingleChildNode(node, depth: d)
         case .TypeMangling: return mangleChildNodes(node, depth: d) && emitOp("D")
         case .DeclContext: return mangleSingleChildNode(node, depth: d)
-        case .Suffix: emit(node.text ?? ""); return true
+        case .Suffix: emitDynamic(node.text ?? ""); return true
         // Identifiers / modules / operators
         case .Identifier: mangleIdentifierImpl(node, isOperator: false); return true
         case .InfixOperator: mangleIdentifierImpl(node, isOperator: true); return emitOp("oi")
@@ -34,7 +34,7 @@ extension Remangler {
             return mangleChildNode(node, 1, depth: d) && emitOp("L") && mangleChildNode(node, 0, depth: d)
         case .RelatedEntityDeclName:
             guard mangleChildNode(node, 1, depth: d), let kindText = node.firstChild?.text, kindText.count == 1 else { return false }
-            emit("L"); emit(kindText); return true
+            emit("L"); emitDynamic(kindText); return true
         // Nominal types
         case .Structure, .Class, .Enum, .protocolNode, .TypeAlias, .OtherNominalType:
             return mangleAnyNominalType(node, depth: d)
@@ -333,7 +333,7 @@ extension Remangler {
         case .GenericSpecializationInResilienceDomain: return mangleGenericSpecializationNode(node, "B", depth: d)
         case .GenericSpecializationPrespecialized: return mangleGenericSpecializationNode(node, "s", depth: d)
         case .InlinedGenericFunction: return mangleGenericSpecializationNode(node, "i", depth: d)
-        case .SpecializationPassID: emit(String(node.index ?? 0)); return true
+        case .SpecializationPassID: emitDynamic(String(node.index ?? 0)); return true
         case .IsSerialized: return emitOp("q")
         case .AsyncRemoved: return emitOp("a")
         case .RepresentationChanged: return emitOp("r")
@@ -346,7 +346,7 @@ extension Remangler {
         case .AutoDiffSelfReorderingReabstractionThunk: return mangleAutoDiffSelfReorderingReabstractionThunk(node, depth: d)
         case .AutoDiffFunctionKind: emit(UInt8(node.index ?? 0)); return true
         case .DifferentiabilityWitness: return mangleDifferentiabilityWitness(node, depth: d)
-        case .IndexSubset: emit(node.text ?? ""); return true
+        case .IndexSubset: emitDynamic(node.text ?? ""); return true
         // Key-path thunk helpers
         case .KeyPathGetterThunkHelper: return mangleKeyPathThunkHelper(node, "TK", depth: d)
         case .KeyPathSetterThunkHelper: return mangleKeyPathThunkHelper(node, "Tk", depth: d)
@@ -420,7 +420,7 @@ extension Remangler {
         case .OutlinedEnumProjectDataForLoad: return mangleOutlinedEnum(node, "WOj", depth: d)
         case .OutlinedVariable: emit("Tv"); mangleIndex(node.index ?? 0); return true
         case .OutlinedReadOnlyObject: emit("Tv"); mangleIndex(node.index ?? 0); emit("r"); return true
-        case .OutlinedBridgedMethod: emit("Te"); emit(node.text ?? ""); emit("_"); return true
+        case .OutlinedBridgedMethod: emit("Te"); emitDynamic(node.text ?? ""); emit("_"); return true
         // Misc
         case .SILThunkIdentity: return mangleSingleChildNode(node, depth: d) && emitOp("TTI")
         case .VTableThunk: return mangleChildNodes(node, depth: d) && emitOp("TV")
@@ -429,7 +429,7 @@ extension Remangler {
         case .SugaredInlineArray: return mangleChildNodes(node, depth: d) && emitOp("XSA")
         case .ConstrainedExistentialSelf: emit("s"); return true
         case .DroppedArgument:
-            emit("t"); let n = node.index ?? 0; if n > 0 { emit(String(n - 1)) }; return true
+            emit("t"); let n = node.index ?? 0; if n > 0 { emitDynamic(String(n - 1)) }; return true
         case .ClangType: return mangleClangType(node)
         case .GenericSpecializationParam, .FunctionSignatureSpecializationParamKind,
              .FunctionSignatureSpecializationParamPayload, .Index, .UnknownIndex,
@@ -443,7 +443,7 @@ extension Remangler {
     // MARK: small helpers used by the dispatch
 
     @discardableResult @inline(__always) func emitOp(_ s: String) -> Bool {
-        emit(s); return true
+        emitDynamic(s); return true
     }
 
     private func mangleEntityOp(_ node: SwiftSymbol, _ op: String, depth: Int) -> Bool {
@@ -457,7 +457,7 @@ extension Remangler {
 
     private func mangleClosure(_ node: SwiftSymbol, _ op: String, depth: Int) -> Bool {
         guard mangleChildNode(node, 0, depth: depth), mangleChildNode(node, 2, depth: depth) else { return false }
-        emit("f"); emit(op)
+        emit("f"); emitDynamic(op)
         return mangleChildNode(node, 1, depth: depth) // index
     }
 
@@ -501,7 +501,7 @@ extension Remangler {
 
     func mangleClangType(_ node: SwiftSymbol) -> Bool {
         let text = Array((node.text ?? "").utf8)
-        emit(String(text.count)); emit(text); return true
+        emitDynamic(String(text.count)); emit(text); return true
     }
 
     private func mangleBoundGenericEnum(_ node: SwiftSymbol, depth: Int) -> Bool {
@@ -616,7 +616,7 @@ extension Remangler {
         guard node.children.count == 2, let kindIdx = node.children[0].index,
               let code = ValueWitnessKinds.all[safe: Int(kindIdx)]?.code else { return false }
         guard mangle(node.children[1], depth: depth) else { return false }
-        emit("w"); emit(code); return true
+        emit("w"); emitDynamic(code); return true
     }
 }
 
